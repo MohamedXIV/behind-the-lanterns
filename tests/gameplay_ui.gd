@@ -38,6 +38,13 @@ func touch(map, point: Vector2) -> void:
 	event.pressed = false
 	Input.parse_input_event(event)
 
+func select_id(option: OptionButton, id: String) -> void:
+	for index in option.item_count:
+		if option.get_item_metadata(index) == id:
+			option.select(index)
+			option.item_selected.emit(index)
+			return
+
 func _run() -> void:
 	if not ResourceLoader.exists("res://dev/gameplay_playground.gd"):
 		check(false, "playable presentation implementation required")
@@ -95,6 +102,47 @@ func _run() -> void:
 	view.find_child("Sell", true, false).pressed.emit()
 	check(m.wallet("a:player") == 9, "Sell button receives quoted payment")
 	check(view.find_child("BagSummary", true, false).text.contains("Dates: 3"), "visible inventory refreshes from committed state")
+	# Continue the same world through the complete interconnected livelihood loop.
+	select_id(view.find_child("Item", true, false), "item.grain")
+	view.find_child("Quantity", true, false).value = 2
+	view.find_child("Buy", true, false).pressed.emit()
+	check(m.wallet("a:player") == 5, "buy ingredients through existing trade controls")
+	view.find_child("SidebarTabs", true, false).current_tab = 1
+	select_id(view.find_child("JobOffer", true, false), "work.provisions")
+	view.find_child("AcceptJob", true, false).pressed.emit()
+	check(m.work.job_for(m.session.snapshot(), "a:player", "work.provisions").status == "accepted", "job journal accepts an optional offer")
+	await tap(map, m.position_of("a:workbench"))
+	await frames(140)
+	view.find_child("StartCraft", true, false).pressed.emit()
+	await frames(45)
+	check(not m.crafting.active_job(m.session.snapshot(), "a:player").is_empty(), "preparation starts through real controls")
+	view.find_child("Save", true, false).pressed.emit()
+	var saved_elapsed: float = m.crafting.active_job(m.session.snapshot(), "a:player").elapsed
+	view.find_child("Load", true, false).pressed.emit()
+	check(m.crafting.active_job(m.session.snapshot(), "a:player").elapsed == saved_elapsed, "Save/Load flushes and restores active craft progress")
+	check(m.inventory.available_contents(m.session.snapshot(), "a:player").get("item.grain", 0) == 0, "restored craft retains reserved ingredients")
+	view.find_child("Wait1h", true, false).pressed.emit()
+	check(m.session.now() == 540 and m.crafting.active_job(m.session.snapshot(), "a:player").elapsed == saved_elapsed, "wait control changes world time without crafting progress")
+	paused = true
+	await frames(60)
+	paused = false
+	check(m.crafting.active_job(m.session.snapshot(), "a:player").elapsed == saved_elapsed, "paused scene never advances active preparation")
+	await frames(210)
+	check(m.crafting.active_job(m.session.snapshot(), "a:player").is_empty() and m.inventory.contents(m.session.snapshot(), "a:player").get("item.provisions", 0) == 2, "active preparation yields goods through presentation ticking")
+	await tap(map, m.position_of("a:courier"))
+	await frames(140)
+	view.find_child("DeliverJob", true, false).pressed.emit()
+	check(m.wallet("a:player") == 17 and view.find_child("JobSummary", true, false).text.contains("completed"), "journal delivery pays once and refreshes status")
+	view.find_child("DeliverJob", true, false).pressed.emit()
+	check(m.wallet("a:player") == 17, "repeated completion button cannot repeat reward")
+	await tap(map, m.position_of("a:merchant"))
+	await frames(80)
+	select_id(view.find_child("JobOffer", true, false), "work.grain")
+	view.find_child("AcceptJob", true, false).pressed.emit()
+	view.find_child("Wait6h", true, false).pressed.emit()
+	check(m.work.job_for(m.session.snapshot(), "a:player", "work.grain").status == "expired", "time controls resolve scheduled job expiry")
+	check(m.position_of("a:courier") == Vector2(460, 300), "map target follows afternoon NPC routine")
+	check(view.find_child("WorldTime", true, false).text.contains("15:00"), "world-clock presentation follows committed time")
 	app.free()
 	for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
 	DirAccess.remove_absolute(directory)

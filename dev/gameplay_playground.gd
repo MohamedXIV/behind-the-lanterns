@@ -4,8 +4,8 @@ extends Control
 
 signal session_changed(candidate: GameSession)
 
-const FIXTURE: String = "res://dev/fixtures/first_gameplay.json"
-const RECOVERY: String = "user://first-gameplay-playground"
+const FIXTURE: String = "res://dev/fixtures/connected_gameplay.json"
+const RECOVERY: String = "user://connected-gameplay-playground"
 const ACTION_HEIGHT: float = 48.0
 var _model: GameplayModel
 var _data: Dictionary
@@ -21,6 +21,8 @@ var _bag: Label
 var _stock: Label
 var _prices: Label
 var _buttons: Dictionary = {}
+var _livelihood: LivelihoodPanel
+var _clock: Label
 
 func initialize(directory: String = RECOVERY) -> bool:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE))
@@ -53,7 +55,14 @@ func _ready() -> void:
 	column.add_theme_constant_override("separation", 12)
 	margin.add_child(column)
 	_label(column, "RULES PLAYGROUND  /  disposable test content", 23)
-	_label(column, "Walk with arrows/WASD, or tap the map. Approach a holder, choose goods and an action.", 16)
+	_label(column, "Walk or tap the map. Collect supplies, accept a job, prepare goods, then find the recipient.", 16)
+	var time_row := HBoxContainer.new()
+	column.add_child(time_row)
+	_clock = _label(time_row, "", 18)
+	_clock.name = "WorldTime"
+	_clock.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_button(time_row, "Wait1h", _wait.bind(60))
+	_button(time_row, "Wait6h", _wait.bind(360))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 20)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -66,10 +75,14 @@ func _ready() -> void:
 	_map.configure(_model, _actor, _data.presentation.labels, _data.presentation.walk_speed)
 	_map.target_selected.connect(_select_target)
 	_map.stopped.connect(_on_stopped)
+	var tabs := TabContainer.new()
+	tabs.name = "SidebarTabs"
+	tabs.custom_minimum_size.x = 350
+	row.add_child(tabs)
 	var side_scroll := ScrollContainer.new()
-	side_scroll.custom_minimum_size.x = 325
+	side_scroll.name = "Goods"
 	side_scroll.size_flags_horizontal = Control.SIZE_FILL
-	row.add_child(side_scroll)
+	tabs.add_child(side_scroll)
 	var side := VBoxContainer.new()
 	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	side.add_theme_constant_override("separation", 10)
@@ -79,7 +92,7 @@ func _ready() -> void:
 	_targets.name = "Target"
 	_targets.custom_minimum_size.y = ACTION_HEIGHT
 	side.add_child(_targets)
-	var ids := _model.inventory.container_ids()
+	var ids := _model.interactions.target_ids()
 	ids.sort()
 	for id in ids:
 		if id == _actor: continue
@@ -123,6 +136,15 @@ func _ready() -> void:
 	_status.name = "Status"
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.custom_minimum_size.x = 300
+	var work_scroll := ScrollContainer.new()
+	work_scroll.name = "Work and craft"
+	tabs.add_child(work_scroll)
+	_livelihood = LivelihoodPanel.new()
+	_livelihood.name = "Livelihood"
+	_livelihood.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	work_scroll.add_child(_livelihood)
+	_livelihood.configure(_model, _actor, _data.presentation.labels, _prepare_action, _map.visual_position)
+	_livelihood.message.connect(_show_message)
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.
@@ -169,6 +191,7 @@ func _bind(candidate: GameSession) -> void:
 	_refresh(0)
 
 func _on_replaced(candidate: GameSession) -> void:
+	_livelihood.reset_after_load()
 	_bind(candidate)
 	_map.sync_position()
 	session_changed.emit(candidate)
@@ -182,13 +205,28 @@ func _commit_position() -> OperationResult:
 	if point.is_equal_approx(_model.position_of(_actor)): return OperationResult.success()
 	return _model.move_actor(_intent("walk"), _actor, point.x, point.y)
 
+func _prepare_action() -> OperationResult:
+	_livelihood.flush_progress()
+	return _commit_position()
+
+func _show_message(text: String) -> void:
+	_status.text = text
+
+func _wait(minutes: int) -> void:
+	var position_result := _prepare_action()
+	if not position_result.ok:
+		_status.text = position_result.code
+		return
+	var result := _model.wait_minutes(_intent("wait"), _actor, minutes)
+	_status.text = "Waited %d world minutes." % minutes if result.ok else _message(result.code)
+
 func _on_stopped(_point: Vector2) -> void:
-	var result := _commit_position()
+	var result := _prepare_action()
 	if not result.ok: _status.text = result.code
 	_refresh(0)
 
 func _act(verb: String) -> void:
-	var movement := _commit_position()
+	var movement := _prepare_action()
 	if not movement.ok:
 		_status.text = movement.code
 		return
@@ -197,7 +235,7 @@ func _act(verb: String) -> void:
 	_status.text = "%s: %d %s" % [verb.capitalize(), int(_quantity.value), _model.inventory.item_definition(_item()).label] if outcome.ok else _message(outcome.code)
 
 func _save() -> void:
-	var movement := _commit_position()
+	var movement := _prepare_action()
 	if not movement.ok:
 		_status.text = movement.code
 		return
@@ -215,13 +253,22 @@ func _refresh(_revision: int) -> void:
 	if _targets == null or _targets.item_count == 0 or _bag == null: return
 	var snapshot := _model.session.snapshot()
 	var bag := _model.inventory.contents(snapshot, _actor)
+	var available := _model.inventory.available_contents(snapshot, _actor)
 	var target_goods := _model.inventory.contents(snapshot, _target())
 	_bag.text = "Your bag  %d / %d slots\n%s\nCoins: %d" % [_model.inventory.slots_used(bag), _model.inventory.container_definition(_actor).slots, _goods_text(bag), _model.wallet(_actor)]
+	if available != bag: _bag.text += "\nAvailable (others reserved):\n" + _goods_text(available)
 	_stock.text = _goods_text(target_goods)
 	var shop := _model.commerce.is_shop(_target())
 	_prices.text = "Buy: %d / Sell: %d coins each\nMerchant coins: %d" % [_model.commerce.quote(_target(), _item(), true), _model.commerce.quote(_target(), _item(), false), _model.wallet(_target())] if shop else "Private storage" if not _model.inventory.can_access(_actor, _target()) else "Transfer goods (no payment)"
+	if _target() in _model.crafting.station_ids():
+		_stock.text = "Preparation bench\nUse the Work and craft tab."
+		_prices.text = "Active preparation; no offline waiting."
+	var npc := _model.npcs.projection(_target(), snapshot.minute)
+	if not npc.is_empty(): _prices.text += "\n" + npc.activity + ("" if npc.available else " (unavailable)")
 	for verb in _buttons:
-		_buttons[verb].disabled = not shop if verb in ["buy", "sell"] else not _model.inventory.can_access(_actor, _target())
+		_buttons[verb].disabled = not shop or not _model.interactions.available(_target(), snapshot.minute) if verb in ["buy", "sell"] else not _model.inventory.can_access(_actor, _target())
+	_clock.text = "Day %d · %02d:%02d" % [int(snapshot.minute / WorldClock.MINUTES_PER_DAY) + 1, int(snapshot.minute / 60) % 24, int(snapshot.minute) % 60]
+	_livelihood.refresh()
 	_map.queue_redraw()
 
 func _goods_text(goods: Dictionary) -> String:
@@ -231,7 +278,7 @@ func _goods_text(goods: Dictionary) -> String:
 	return "Empty" if lines.is_empty() else "\n".join(lines)
 
 func _message(code: String) -> String:
-	return {"out_of_reach": "Walk closer to the selected holder.", "access_denied": "You do not have permission to use this holder.", "container_full": "Not enough room in the destination.", "insufficient_goods": "Not enough of those goods.", "insufficient_funds": "The buyer does not have enough coins.", "quote_changed": "The price no longer matches."}.get(code, code)
+	return {"out_of_reach": "Walk closer to the selected holder.", "access_denied": "You do not have permission to use this holder.", "container_full": "Not enough room in the destination.", "insufficient_available_goods": "Not enough unreserved goods.", "insufficient_funds": "The buyer does not have enough coins.", "person_unavailable": "They are not available at this time.", "quote_changed": "The price no longer matches."}.get(code, code)
 
 func _exit_tree() -> void:
 	if _bound != null: _bound.committed.disconnect(_refresh)

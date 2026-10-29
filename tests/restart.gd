@@ -49,6 +49,7 @@ func _run() -> void:
 			DirAccess.remove_absolute(args[1].path_join(name))
 		DirAccess.remove_absolute(args[1])
 	_gameplay_restart(args[0], args[1] + "-gameplay")
+	_connected_restart(args[0], args[1] + "-connected")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -73,3 +74,30 @@ func _gameplay_restart(mode: String, directory: String) -> void:
 		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
 		DirAccess.remove_absolute(directory)
 	print("GAMEPLAY RESTART %s %s" % [mode, "FAIL" if _failed else "PASS"])
+
+func _connected_restart(mode: String, directory: String) -> void:
+	var content: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dev/fixtures/connected_gameplay.json"))
+	var game := GameplayModel.create(content, "world.connected-restart")
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(game.act("grain", "a:player", "a:supplies", "item.grain", 2, "take").ok, "collect craft grain")
+		expect(game.act("dates", "a:player", "a:supplies", "item.dates", 1, "take").ok, "collect craft dates")
+		game.move_actor("giver", "a:player", 620, 160)
+		expect(game.accept_job("job", "a:player", "work.provisions").ok, "reserve reward before restart")
+		game.move_actor("bench", "a:player", 220, 320)
+		expect(game.start_craft("craft", "a:player", "recipe.provisions", "a:workbench").ok, "reserve craft inputs before restart")
+		expect(game.progress_craft("progress", "a:player", 1).ok and store.save(game.session).ok, "save incomplete preparation and accepted job together")
+	else:
+		expect(game.adopt(store.load_candidate(game.session)), "load connected state in a new process")
+		expect(game.session.now() == 480 and game.crafting.active_job(game.session.snapshot(), "a:player").elapsed == 1, "no offline world/active time added")
+		expect(game.wallet("a:merchant") == 68 and game.inventory.available_contents(game.session.snapshot(), "a:player").is_empty(), "reward and ingredient reservations survive restart")
+		expect(game.progress_craft("finish", "a:player", 2).ok, "resume remaining active seconds after restart")
+		game.wait_minutes("wait", "a:player", 60)
+		game.move_actor("recipient", "a:player", 600, 320)
+		expect(game.deliver_job("deliver", "a:player", "work.provisions").ok and game.wallet("a:player") == 22, "deliver and settle held reward after restart")
+		expect(store.save(game.session).ok and game.adopt(store.load_candidate(game.session)), "completed connected result roundtrips")
+		var before := game.session.snapshot()
+		expect(game.deliver_job("deliver", "a:player", "work.provisions").ok and game.session.snapshot() == before, "persisted delivery receipt prevents duplicate payout")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	print("CONNECTED RESTART %s %s" % [mode, "FAIL" if _failed else "PASS"])

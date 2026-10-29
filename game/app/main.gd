@@ -17,7 +17,7 @@ func _ready() -> void:
 	play.pressed.connect(open_playground)
 	add_child(play)
 
-func open_playground(directory: String = "user://first-gameplay-playground") -> void:
+func open_playground(directory: String = "user://connected-gameplay-playground") -> void:
 	if get_node_or_null("GameplayPlayground") != null: return
 	var playground: Control = load("res://dev/gameplay_playground.gd").new()
 	if not playground.initialize(directory):

@@ -63,8 +63,9 @@ func _tap(point: Vector2) -> void:
 	_goal = ((point - _offset()) / _scale_factor()).clamp(Vector2.ZERO, _model.interactions.bounds())
 	var closest: String = ""
 	var distance: float = PICK_RADIUS
-	for id in _model.inventory.container_ids():
-		if id == _actor: continue
+	var snapshot := _model.session.snapshot()
+	for id in _model.interactions.target_ids():
+		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id: continue
 		var separation := _model.position_of(id).distance_to(_goal)
 		if separation < distance:
 			closest = id
@@ -108,15 +109,19 @@ func _draw() -> void:
 		draw_line(world_to_local(Vector2(0, y)), world_to_local(Vector2(extent.x, y)), Color("263b3b"))
 	var snapshot := _model.session.snapshot()
 	var font := get_theme_default_font()
-	for id in _model.inventory.container_ids():
+	for id in _model.interactions.target_ids():
 		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id: continue
 		var at := world_to_local(_model.position_of(id))
 		var color := Color("d8b777") if _model.inventory.can_access(_actor, id) else Color("a67d88")
 		if _model.commerce.is_shop(id): color = Color("9bbf91")
+		if id in _model.crafting.station_ids(): color = Color("d49b61")
+		var npc := _model.npcs.projection(id, snapshot.minute)
+		if not npc.is_empty() and not npc.available: color = Color("6e8582")
 		draw_rect(Rect2(at - Vector2(16, 16), Vector2(32, 32)), color)
 		if id == selected_target: draw_arc(at, 24, 0, TAU, 32, Color("ffe3a1"), 2)
 		draw_string(font, at + Vector2(-80, -28), _labels.get(id, id), HORIZONTAL_ALIGNMENT_CENTER, 160, 16, Color("e8e4d5"))
-		draw_string(font, at + Vector2(-65, 42), "%d goods" % _quantity(snapshot, id), HORIZONTAL_ALIGNMENT_CENTER, 130, 14, Color("b4c7c3"))
+		var detail: String = npc.activity if not npc.is_empty() else "Preparation" if id in _model.crafting.station_ids() else "%d goods" % _quantity(snapshot, id)
+		draw_string(font, at + Vector2(-80, 42), detail, HORIZONTAL_ALIGNMENT_CENTER, 160, 14, Color("b4c7c3"))
 	var actor_at := world_to_local(_visual)
 	draw_arc(actor_at, _model.interactions.reach() * _scale_factor(), 0, TAU, 48, Color(0.55, 0.85, 0.85, 0.22), 1)
 	draw_circle(actor_at, 10, Color("8bd0d1"))
