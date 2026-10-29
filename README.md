@@ -30,7 +30,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 
 ## Status — 29 October 2026
 
-**Foundational design in review, not a playable game.** The repo initially contained a README and Godot gitignore. PR #1 contains the first substantial design drafts. There is no approved engine scaffold, gameplay architecture, Ink integration, build, or export test yet.
+**Design foundation merged; minimal Godot technical scaffold is in progress.** ADR-001 is accepted. The foundation branch adds a technical-only scene, session-scoped clock/scheduler, JSON snapshot codec and headless test fixtures, **not a playable game or finished farming/Ink system**. Export and device tests remain unverified.
 
 ### Agreed
 - **Engine:** Godot; **rendering:** detailed 2D high-resolution pixel-art direction, fixed elevated front-readable 3/4 oblique view (not true isometric).
@@ -93,6 +93,10 @@ These are examples of interaction between systems—not mandatory quests or prom
 **F4:** add exploration and consequences: region travel, danger, tactical combat, law/pursuit, arrest and prison.
 
 **F5:** expand hand-authored towns, journeys, encounters and production-quality assets after contracts survive testing.
+
+### First technical foundation
+
+See [Foundation Harness](docs/technical/FOUNDATION.md) for the executable Godot-only shell, headless test command, runtime architecture and explicit limitations. The code deliberately does **not** include a city, a full crafting system, or game content.
 
 ### Repository
 

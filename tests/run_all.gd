@@ -16,6 +16,7 @@ func _run() -> void:
     _test_save_restore_no_duplicate_event()
     _test_reject_invalid_timeline()
     _test_session_isolation()
+    _test_durable_payload_rejects_runtime_objects()
     if _failures == 0:
         print("FOUNDATION PASS: %d assertions" % _checks)
     else:
@@ -110,3 +111,14 @@ func _test_session_isolation() -> void:
     var two := GameSession.new()
     one.world.set_fact("other_region", true)
     _expect(not two.world.has_fact("other_region"), "sessions never share world state")
+
+func _test_durable_payload_rejects_runtime_objects() -> void:
+    var session := GameSession.new()
+    _expect(not session.schedule_event({
+        "id": "nonserializable", "kind": "notice", "due_minute": 5,
+        "payload": {"node": RefCounted.new()}
+    }), "durable jobs cannot persist live Object references")
+    _expect(session.schedule_event({
+        "id": "serializable", "kind": "notice", "due_minute": 5,
+        "payload": {"actor_id": "actor_01", "flags": [true, 2]}
+    }), "JSON-safe semantic payload accepted")

@@ -82,7 +82,7 @@ func _normalize(input: Dictionary) -> Dictionary:
     if absf(float(priority)) > 100000.0:
         return {}
     var payload: Variant = input.get("payload", {})
-    if typeof(payload) != TYPE_DICTIONARY:
+    if typeof(payload) != TYPE_DICTIONARY or not _is_data_only(payload):
         return {}
     var event_status: Variant = input.get("status", "pending")
     if event_status != "pending" and event_status != "completed":
@@ -106,3 +106,24 @@ func _comes_first(left: Dictionary, right: Dictionary) -> bool:
     if left_priority != right_priority:
         return left_priority < right_priority
     return String(left["id"]) < String(right["id"])
+
+func _is_data_only(value: Variant, depth: int = 0) -> bool:
+    if depth > 8:
+        return false
+    match typeof(value):
+        TYPE_NIL, TYPE_BOOL, TYPE_INT, TYPE_STRING:
+            return true
+        TYPE_FLOAT:
+            return is_finite(float(value))
+        TYPE_ARRAY:
+            for entry in value:
+                if not _is_data_only(entry, depth + 1):
+                    return false
+            return true
+        TYPE_DICTIONARY:
+            for key in value:
+                if typeof(key) != TYPE_STRING or not _is_data_only(value[key], depth + 1):
+                    return false
+            return true
+        _:
+            return false

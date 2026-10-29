@@ -35,6 +35,8 @@ func schedule_event(event: Dictionary) -> bool:
 func advance_to(target_minute: int) -> bool:
     if _unsafe_after_failed_advance:
         return false
+    if target_minute < clock.current_minute() or target_minute > WorldClock.MAX_WORLD_MINUTE:
+        return false
     if coordinator.advance_to(target_minute):
         return true
     # Could have failed halfway through a domain command. Rebuild from a known
