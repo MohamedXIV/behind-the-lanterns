@@ -30,11 +30,11 @@ These are examples of interaction between systems—not mandatory quests or prom
 
 ## Status — 29 October 2026
 
-**Foundational design in review, not a playable game.** The repo initially contained a README and Godot gitignore. PR #1 contains the first substantial design drafts. There is no approved engine scaffold, gameplay architecture, Ink integration, build, or export test yet.
+**Transactional runtime foundation under review, not a playable game.** ADR-001 and the founding documents are on main. This branch independently rebuilds the runtime from main, with [ADR-002](docs/adr/ADR-002-TRANSACTIONAL-FOUNDATION.md), [integration contracts](docs/technical/FOUNDATION.md) and [executed Godot evidence](docs/technical/FOUNDATION-VERIFICATION.md). PR #10 remains a separate early attempt. BTL Ink integration and platform exports are not yet verified.
 
 ### Agreed
 - **Engine:** Godot; **rendering:** detailed 2D high-resolution pixel-art direction, fixed elevated front-readable 3/4 oblique view (not true isometric).
-- **Targets:** native mobile in landscape with touch controls **and Web**; desktop/Steam later. **Typed GDScript-first is preferred but not yet ratified**.
+- **Targets:** native mobile in landscape with touch controls **and Web**; desktop/Steam later. **Godot Standard 4.7.2 + typed GDScript-first is accepted in ADR-001**.
 - **Setting:** timeless Arabian fantasy informed by *One Thousand and One Nights*, real named lands and fully fictional wonders, no fixed dynasty or year.
 - **Structure:** free sandbox, optional story arcs, no mandatory main quest.
 - **Narrative:** Ink for dialogue and broader narrative expression; objective World State separated from player Knowledge.
@@ -43,8 +43,8 @@ These are examples of interaction between systems—not mandatory quests or prom
 - **Production:** systems first, very small replaceable test fixtures, authored meaningful content; **no canonical content-heavy vertical slice**.
 
 ### Deliberately not agreed yet
-- Selected foundation: **Godot Standard 4.7.2 + typed GDScript**, approved in ADR-001. BTL-specific inkgd integration and Android/iOS export remain unverified.
-- Dependency injection / application lifecycle / global managers / system ownership and interfaces.
+- BTL-specific inkgd integration and Android/iOS/Web export/device acceptance remain unverified.
+- ADR-002 implementation details are proposed for review; ADR-001 already establishes session scope and manual composition.
 - Save-vs-checkpoint semantics, the rhythm of in-game time and needs, exact mobile input mapping.
 - Starting city's final choice (Alexandria is a candidate) and public-release content bounds.
 
@@ -66,6 +66,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 | [Architecture RFC](docs/06-ARCHITECTURE-RFC.md) | **Proposed, NOT adopted**: language and DI/autoload/service models |
 | [Selective World Simulation RFC](docs/09-WORLD-SIMULATION-RFC.md) | Design rationale and unresolved tuning questions for scheduled/lazy world updates |
 | [ADR-001 Runtime Foundation](docs/adr/ADR-001-RUNTIME-FOUNDATION.md) | **Accepted foundation**: GDScript, session scope, time, scheduling, storage boundaries |
+| [ADR-002 Transactional Foundation](docs/adr/ADR-002-TRANSACTIONAL-FOUNDATION.md) | **Implementation decision for review**: atomic advancement, identity, ordering, domain contracts and recovery |
 | [System Catalog](docs/07-SYSTEM-CATALOG.md) | Candidate systems, responsibilities, state ownership, boundaries |
 | [Decision Register](docs/DECISIONS.md) | Explicit Locked/Provisional/Open/Deferred decisions |
 | [Agent Contract](AGENTS.md) | Instructions for AI coding agents |
@@ -79,6 +80,19 @@ These are examples of interaction between systems—not mandatory quests or prom
 5. Avoid elaborate generic frameworks, giant game-manager singletons, graph-only code invisible to agents, and one-file monoliths.
 6. Prefer lightweight local validation; no GitHub Actions without a real need.
 7. Capture significant design changes in the Decision Register; GitHub Issues are the implementation backlog.
+
+## Local foundation verification
+
+Use Godot **Standard 4.7.2**:
+
+```sh
+GODOT_BIN=/path/to/Godot bash tools/test-headless.sh
+```
+
+This imports the project, runs deterministic contract tests, verifies a disk save
+across two separate Godot processes, and starts the technical shell. It fails on
+Godot errors/warnings even if the engine exits zero. No dependency downloads or
+GitHub Actions are required. See the evidence document for actual results and limits.
 
 ## Development roadmap (proposed, not a scope promise)
 
@@ -99,3 +113,4 @@ These are examples of interaction between systems—not mandatory quests or prom
 Primary source of truth: [MohamedXIV/behind-the-lanterns](https://github.com/MohamedXIV/behind-the-lanterns). The public title **Behind the Lanterns** remains a working title subject to eventual trademark/store clearance.
 
 Design status is not code status: do not mistake these documents for implemented features.
+

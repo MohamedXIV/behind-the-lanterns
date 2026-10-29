@@ -43,8 +43,15 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 | D-036 | Locked | Adopt selective offscreen simulation as the **foundational execution policy**: active loaded-scene behavior, durable scheduled consequential events, lazy time-anchored state reconciliation, and unticked static world facts. Fine-grained policy, clock rate and event schemas remain tunable. See ADR-001/RFC-002. |
 | D-037 | Locked | ADR-001: Godot Standard 4.7.2, typed GDScript, one composition root and session-scoped service state, minimal Autoloads, manual wiring, WorldClock + SimulationCoordinator + due-event Scheduler, state-owning domains and scene-local presentation; no mandatory DI framework or all-global managers. |
 
+## Runtime implementation review
+
+| ID | Status | Decision |
+| --- | --- | --- |
+| D-038 | Provisional | ADR-002 implements detached candidate transactions with whole-request rollback, due/FIFO ordering, stable entity/occurrence IDs, strict version/content validation and native A/B recovery. These are engineering decisions proposed in the foundation rebuild PR, not new gameplay requirements or a completed platform acceptance claim. |
+
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.
 2. When a conflict arises, update this register and the affected GDD together.
 3. No auto-upgrade from Provisional to Locked because an agent implemented a prototype.
 4. New system work must link to a GitHub Issue with verifiable acceptance conditions.
+
