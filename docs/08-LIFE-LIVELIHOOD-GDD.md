@@ -3,6 +3,12 @@
 
 > **Design mandate:** Everyday life must be a meaningful way to play, and adventure should naturally enrich it. These systems are designed to interact through a small common foundation, not become six global managers, a generic survival simulator, or a content-heavy vertical slice.
 
+**Implementation update (29 October 2026):** The owner's autonomous gameplay request
+authorizes a bounded inventory/container + simple trade/interaction increment (#12)
+on merged foundation #11. See `docs/technical/FIRST-GAMEPLAY.md` and D-039 for its
+selected engineering subset. This does not approve every proposal below; earlier
+statements that no code is authorized are historical and superseded for that subset.
+
 ## 0. Source of authority, approval status, and scope
 
 ### Already approved in the Constitution / conversation
@@ -567,3 +573,4 @@ The public repository [Kiosk on the Nile](https://github.com/MohamedXIV/kiosk-on
 - `docs/06-ARCHITECTURE-RFC.md` — unratified language/DI/lifecycle tradeoffs.
 - `docs/07-SYSTEM-CATALOG.md` — responsibility inventory (this GDD expands the livelihood part).
 - `docs/DECISIONS.md` — authoritative decision status.
+

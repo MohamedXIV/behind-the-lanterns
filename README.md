@@ -30,7 +30,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 
 ## Status — 29 October 2026
 
-**Transactional runtime foundation under review, not a playable game.** ADR-001 and the founding documents are on main. This branch independently rebuilds the runtime from main, with [ADR-002](docs/adr/ADR-002-TRANSACTIONAL-FOUNDATION.md), [integration contracts](docs/technical/FOUNDATION.md) and [executed Godot evidence](docs/technical/FOUNDATION-VERIFICATION.md). PR #10 remains a separate early attempt. BTL Ink integration and platform exports are not yet verified.
+**The first gameplay rules are playable in a disposable playground.** The reviewed transactional foundation was merged in PR #11; PR #10 was closed as superseded. You can walk, collect finite goods, store/retrieve them, buy/sell with a merchant and save/load the resulting world. See [first gameplay scope and evidence](docs/technical/FIRST-GAMEPLAY.md). This is a test environment, not the game's final city, artwork or story. BTL Ink integration and platform exports remain unverified.
 
 ### Agreed
 - **Engine:** Godot; **rendering:** detailed 2D high-resolution pixel-art direction, fixed elevated front-readable 3/4 oblique view (not true isometric).
@@ -44,7 +44,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 
 ### Deliberately not agreed yet
 - BTL-specific inkgd integration and Android/iOS/Web export/device acceptance remain unverified.
-- ADR-002 implementation details are proposed for review; ADR-001 already establishes session scope and manual composition.
+- ADR-002 is the reviewed engineering baseline; active-play clock pacing and gameplay checkpoint policy remain open.
 - Save-vs-checkpoint semantics, the rhythm of in-game time and needs, exact mobile input mapping.
 - Starting city's final choice (Alexandria is a candidate) and public-release content bounds.
 
@@ -66,7 +66,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 | [Architecture RFC](docs/06-ARCHITECTURE-RFC.md) | **Proposed, NOT adopted**: language and DI/autoload/service models |
 | [Selective World Simulation RFC](docs/09-WORLD-SIMULATION-RFC.md) | Design rationale and unresolved tuning questions for scheduled/lazy world updates |
 | [ADR-001 Runtime Foundation](docs/adr/ADR-001-RUNTIME-FOUNDATION.md) | **Accepted foundation**: GDScript, session scope, time, scheduling, storage boundaries |
-| [ADR-002 Transactional Foundation](docs/adr/ADR-002-TRANSACTIONAL-FOUNDATION.md) | **Implementation decision for review**: atomic advancement, identity, ordering, domain contracts and recovery |
+| [ADR-002 Transactional Foundation](docs/adr/ADR-002-TRANSACTIONAL-FOUNDATION.md) | **Engineering baseline merged in #11**: atomic advancement, identity, ordering, domain contracts and recovery |
 | [System Catalog](docs/07-SYSTEM-CATALOG.md) | Candidate systems, responsibilities, state ownership, boundaries |
 | [Decision Register](docs/DECISIONS.md) | Explicit Locked/Provisional/Open/Deferred decisions |
 | [Agent Contract](AGENTS.md) | Instructions for AI coding agents |
@@ -83,14 +83,20 @@ These are examples of interaction between systems—not mandatory quests or prom
 
 ## Local foundation verification
 
+Open `project.godot` with Godot Standard 4.7.2 and click **Open gameplay playground**.
+Use arrows/WASD or tap the map, approach an object and use the action buttons.
+Native **Save/Load** retains goods, money and position. No offline time is added.
+The sample prices, bag size and layout are replaceable test data under `dev/fixtures`.
+
 Use Godot **Standard 4.7.2**:
 
 ```sh
 GODOT_BIN=/path/to/Godot bash tools/test-headless.sh
 ```
 
-This imports the project, runs deterministic contract tests, verifies a disk save
-across two separate Godot processes, and starts the technical shell. It fails on
+This imports the project, runs deterministic rule tests and actual input/button
+checks, verifies foundation and gameplay saves across two Godot processes, and
+starts the application shell. It fails on
 Godot errors/warnings even if the engine exits zero. No dependency downloads or
 GitHub Actions are required. See the evidence document for actual results and limits.
 

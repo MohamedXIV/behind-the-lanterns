@@ -5,9 +5,10 @@ extends RefCounted
 var _data: Dictionary
 var _fingerprint: String
 
-static func create(data: Dictionary) -> WorldDefinition:
+static func create(data: Dictionary, rules_content: Dictionary = {}) -> WorldDefinition:
 	if not WorldData.keys(data, ["regions", "definitions", "entities", "facts", "claims"]) or not WorldData.valid(data):
 		return null
+	if not WorldData.valid(rules_content): return null
 	for field in ["regions", "definitions", "claims"]:
 		if not data[field] is Array: return null
 		var seen: Dictionary = {}
@@ -26,6 +27,8 @@ static func create(data: Dictionary) -> WorldDefinition:
 	var definition := WorldDefinition.new()
 	definition._data = data.duplicate(true)
 	definition._fingerprint = JSON.stringify(data, "", true, true).sha256_text()
+	if not rules_content.is_empty():
+		definition._fingerprint = JSON.stringify({"world": data, "rules": rules_content}, "", true, true).sha256_text()
 	return definition
 
 func fingerprint() -> String:

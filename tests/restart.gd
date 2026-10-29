@@ -48,5 +48,28 @@ func _run() -> void:
 		for name in RecoveryStore.SLOT_NAMES:
 			DirAccess.remove_absolute(args[1].path_join(name))
 		DirAccess.remove_absolute(args[1])
+	_gameplay_restart(args[0], args[1] + "-gameplay")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
+
+func _gameplay_restart(mode: String, directory: String) -> void:
+	var content: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dev/fixtures/first_gameplay.json"))
+	var game := GameplayModel.create(content, "world.gameplay-restart")
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(game.act("collect", "a:player", "a:supplies", "item.dates", 5, "take").ok, "collect before restart")
+		expect(game.move_actor("chest_walk", "a:player", 360, 160).ok, "walk to chest")
+		expect(game.act("store", "a:player", "a:chest", "item.dates", 2, "store").ok, "store before restart")
+		expect(game.move_actor("shop_walk", "a:player", 620, 160).ok, "walk to merchant")
+		expect(game.act("sell", "a:player", "a:merchant", "item.dates", 1, "sell", 2).ok, "trade before restart")
+		expect(store.save(game.session).ok, "save actual gameplay state")
+	else:
+		expect(game.adopt(store.load_candidate(game.session)), "load gameplay in fresh process")
+		var before := game.session.snapshot()
+		expect(game.inventory.contents(before, "a:supplies")["item.dates"] == 7, "finite source depletion survives restart")
+		expect(game.inventory.contents(before, "a:player")["item.dates"] == 2 and game.inventory.contents(before, "a:chest")["item.dates"] == 2, "custody survives restart")
+		expect(game.wallet("a:player") == 12 and game.position_of("a:player") == Vector2(620, 160), "money and position survive restart")
+		expect(game.act("sell", "a:player", "a:merchant", "item.dates", 1, "sell", 2).ok and game.session.snapshot() == before, "loaded sale intent cannot pay twice")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	print("GAMEPLAY RESTART %s %s" % [mode, "FAIL" if _failed else "PASS"])

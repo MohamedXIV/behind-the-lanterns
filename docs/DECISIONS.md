@@ -47,7 +47,8 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 
 | ID | Status | Decision |
 | --- | --- | --- |
-| D-038 | Provisional | ADR-002 implements detached candidate transactions with whole-request rollback, due/FIFO ordering, stable entity/occurrence IDs, strict version/content validation and native A/B recovery. These are engineering decisions proposed in the foundation rebuild PR, not new gameplay requirements or a completed platform acceptance claim. |
+| D-038 | Provisional | ADR-002 is the engineering baseline merged in #11 after review and executed Godot tests: detached candidates, whole-request rollback, due/FIFO ordering, stable IDs, strict validation and native A/B recovery. It remains open to evidence-based technical refinement and is not a completed platform acceptance claim. |
+| D-039 | Provisional | Owner-authorized first gameplay increment (#12): aggregate ordinary goods in one container ledger, data-defined stacking/capacity, static container access, finite wallets/stock and atomic quoted trade, with region/reach checks. The disposable playground's values and movement presentation are not final game design. Unique items, legal ownership/theft, jobs, crafting and dynamic economy remain future scope. |
 
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.
