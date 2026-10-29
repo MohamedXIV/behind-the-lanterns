@@ -64,6 +64,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 | [Art & Technology](docs/04-ART-TECH.md) | Visual constraints and technical production direction |
 | [Production Strategy](docs/05-PRODUCTION.md) | Systems-first work and verification policies |
 | [Architecture RFC](docs/06-ARCHITECTURE-RFC.md) | **Proposed, NOT adopted**: language and DI/autoload/service models |
+| [Selective World Simulation RFC](docs/09-WORLD-SIMULATION-RFC.md) | Scheduled consequential events, lazy time-anchored reconciliation, static facts and time advancement (**proposal**) |
 | [System Catalog](docs/07-SYSTEM-CATALOG.md) | Candidate systems, responsibilities, state ownership, boundaries |
 | [Decision Register](docs/DECISIONS.md) | Explicit Locked/Provisional/Open/Deferred decisions |
 | [Agent Contract](AGENTS.md) | Instructions for AI coding agents |

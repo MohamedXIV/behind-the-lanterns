@@ -138,6 +138,10 @@ A facade is allowed to aggregate a feature's public operations (e.g. `ITravelSer
 6. Turn decisions into an accepted ADR and update `docs/DECISIONS.md` and AGENTS.md.
 7. Only then scaffold the core runtime.
 
+## Selective Offscreen Simulation (proposal)
+
+The owner proposed three offscreen strategies: schedule meaningful consequences even when the relevant scene is unloaded; lazily reconcile less consequential state to its **correct elapsed-time result** when it is next needed; and leave static/unimportant objects without clock-driven updates. Active loaded-scene interactions form a separate mode. See [RFC 002 — Selective World Simulation](09-WORLD-SIMULATION-RFC.md) for component responsibilities, chronological time skipping, durable semantic subscriptions, persistence invariants, examples and disposable test fixtures. **This has not yet been ratified as an implementation ADR.**
+
 ## 10. Explicitly unresolved
 - Exact lifecycle implementation, save/checkpoint contract and minimum pure-domain boundary.
 - Whether a `WorldSession` or `GameSession` owns simulation per run.

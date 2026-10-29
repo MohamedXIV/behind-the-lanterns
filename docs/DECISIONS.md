@@ -40,6 +40,7 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 | D-033 | Locked | Home furniture/decor placement will be deliberately simple and constrained for fixed 2D; avoid complex construction/build-mode scope. |
 | D-034 | Provisional | Prefer shallow inheritance and focused composition of reusable item capabilities (e.g. future spoilage, durability, placement, consumability), plus bounded action-specific skill modifiers; no universal trait/effects engine is approved. |
 | D-035 | Open | Spoilage feature launch inclusion, storage effects and item expiry policies; farm watering cadence/failure, fish timing details, furniture snap model, and craft interruption rules. |
+| D-036 | Provisional | Owner proposed selective offscreen simulation: schedule consequential/player-relevant events independently of loaded regions, lazily reconcile lower-consequence world state using actual elapsed time when needed, and leave static/unimportant state unticked. See RFC 002; architecture implementation still under review. |
 
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.
