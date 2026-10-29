@@ -33,6 +33,7 @@ func _run() -> void:
 	gameplay_tests.run(self)
 	var livelihood_tests: RefCounted = load("res://tests/test_livelihood.gd").new()
 	livelihood_tests.run(self)
+	load("res://tests/test_world_geometry.gd").new().run(self)
 	_finish()
 
 func _finish() -> void:

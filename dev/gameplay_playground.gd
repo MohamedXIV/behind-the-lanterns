@@ -23,6 +23,7 @@ var _prices: Label
 var _buttons: Dictionary = {}
 var _livelihood: LivelihoodPanel
 var _clock: Label
+var _tabs: TabContainer
 
 func initialize(directory: String = RECOVERY) -> bool:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE))
@@ -75,7 +76,12 @@ func _ready() -> void:
 	_map.configure(_model, _actor, _data.presentation.labels, _data.presentation.walk_speed)
 	_map.target_selected.connect(_select_target)
 	_map.stopped.connect(_on_stopped)
+	_map.use_requested.connect(_use_target)
+	_map.feedback.connect(_show_message)
+	var use_button := _button(time_row, "Use nearby", _use_nearby)
+	use_button.tooltip_text = "E or tap: use the closest unobstructed object"
 	var tabs := TabContainer.new()
+	_tabs = tabs
 	tabs.name = "SidebarTabs"
 	tabs.custom_minimum_size.x = 350
 	row.add_child(tabs)
@@ -285,3 +291,15 @@ func _exit_tree() -> void:
 	if _model != null:
 		_model.session_replaced.disconnect(_on_replaced)
 		_model.session.close()
+
+func _use_nearby() -> void:
+	_map.use_nearby()
+
+func _use_target(id: String) -> void:
+	var result := _prepare_action()
+	if not result.ok:
+		_show_message(result.code)
+		return
+	_select_target(id)
+	_tabs.current_tab = 1 if id in _model.crafting.station_ids() or not _model.npcs.projection(id, _model.session.now()).is_empty() else 0
+	_show_message("Using " + str(_data.presentation.labels.get(id, id)) + ". Choose an action; goods and payments require confirmation.")
