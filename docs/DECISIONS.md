@@ -53,6 +53,8 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 
 | D-041 | Provisional | #14 linked rooms: data-defined doors atomically relocate actor region and position; region-local collision and a shared reusable 2D view compose modest temporary rooms. Interior storage/preparation reuse existing domains. Rooms share a logical extent; no scene framework, final city art or cross-region NPC walking is implied. |
 
+| D-042 | Provisional | #5/#14: real inkgd drives contextual conversation; immutable world facts and existing semantic knowledge remain authoritative. Whitelisted story commands can add hearsay or request existing work. Bounded choice/context replay persists conversation continuation and verifies frames, with no raw VM save injection or general quest framework. |
+
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.
 2. When a conflict arises, update this register and the affected GDD together.

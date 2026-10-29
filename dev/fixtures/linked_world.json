@@ -3,7 +3,8 @@
     "regions": [
       "region.playground",
       "region.remote",
-      "region.workshop"
+      "region.workshop",
+      "region.alcove"
     ],
     "definitions": [
       "actor.resident",
@@ -62,10 +63,29 @@
       "a:indoor-chest": {
         "definition_id": "object.storage",
         "region_id": "region.workshop"
+      },
+      "a:side-passage": {
+        "definition_id": "object.door",
+        "region_id": "region.workshop"
+      },
+      "a:alcove-exit": {
+        "definition_id": "object.door",
+        "region_id": "region.alcove"
+      },
+      "a:dry-basin": {
+        "definition_id": "object.supplies",
+        "region_id": "region.alcove"
       }
     },
-    "facts": {},
-    "claims": []
+    "facts": {
+      "fact.passage_exists": true,
+      "fact.basin_dry": true
+    },
+    "claims": [
+      "claim.passage",
+      "claim.water",
+      "claim.dry_basin"
+    ]
   },
   "inventory": {
     "items": {
@@ -222,6 +242,18 @@
       "a:indoor-chest": {
         "x": 140,
         "y": 220
+      },
+      "a:side-passage": {
+        "x": 650,
+        "y": 330
+      },
+      "a:alcove-exit": {
+        "x": 100,
+        "y": 330
+      },
+      "a:dry-basin": {
+        "x": 260,
+        "y": 220
       }
     },
     "geometry": {
@@ -246,6 +278,10 @@
             "height": 120
           }
         ]
+      },
+      "region.alcove": {
+        "radius": 10,
+        "obstacles": []
       }
     },
     "portals": {
@@ -257,6 +293,16 @@
       "a:workshop-exit": {
         "region_id": "region.playground",
         "x": 100,
+        "y": 300
+      },
+      "a:side-passage": {
+        "region_id": "region.alcove",
+        "x": 100,
+        "y": 300
+      },
+      "a:alcove-exit": {
+        "region_id": "region.workshop",
+        "x": 650,
         "y": 300
       }
     }
@@ -275,11 +321,15 @@
       "a:workshop-door": "Workshop",
       "a:workshop-exit": "Courtyard",
       "a:indoor-bench": "Workshop bench",
-      "a:indoor-chest": "Workshop storage"
+      "a:indoor-chest": "Workshop storage",
+      "a:side-passage": "Narrow side passage",
+      "a:alcove-exit": "Workshop passage",
+      "a:dry-basin": "Old stone basin"
     },
     "region_labels": {
       "region.playground": "Courtyard",
-      "region.workshop": "Workshop"
+      "region.workshop": "Workshop",
+      "region.alcove": "Quiet alcove"
     }
   },
   "start_minute": 480,
@@ -390,6 +440,60 @@
       },
       "reward": 6,
       "deadline_minutes": 180
+    }
+  },
+  "narrative": {
+    "journal": {
+      "claim.passage": "A side passage exists beyond the workshop.",
+      "claim.water": "A boatman claims a singing spring offers water in the alcove.",
+      "claim.dry_basin": "The alcove basin is dry; its carved channel holds only dust."
+    },
+    "discoveries": {
+      "a:side-passage": {
+        "claim_id": "claim.passage",
+        "fact_id": "fact.passage_exists"
+      },
+      "a:dry-basin": {
+        "claim_id": "claim.dry_basin",
+        "fact_id": "fact.basin_dry"
+      }
+    },
+    "conversations": {
+      "a:merchant": {
+        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"ev\",{\"VAR?\":\"found_dry_basin\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^The merchant turns a cracked cup in his hands. \\\"So the singing spring has fallen silent? I should stop promising thirsty travelers a drink.\\\"\",\"\\n\",{\"->\":\".^.^.^.5\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^The merchant shades his stall with a woven cloth. \\\"A little honest work leaves the evening free for wonders.\\\"\",\"\\n\",{\"->\":\".^.^.^.5\"},null]}],\"nop\",\"\\n\",\"ev\",\"str\",\"^Ask about the old workshop.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},\"ev\",\"str\",\"^Ask for a small delivery.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"!\",{\"VAR?\":\"finished_delivery\"},\"!\",\"&&\",\"/ev\",{\"*\":\".^.c-1\",\"flg\":5},\"ev\",\"str\",\"^Discuss the provisions delivery.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"/ev\",{\"*\":\".^.c-2\",\"flg\":5},\"ev\",\"str\",\"^Mention the completed delivery.\",\"/str\",{\"VAR?\":\"finished_delivery\"},\"/ev\",{\"*\":\".^.c-3\",\"flg\":5},\"ev\",\"str\",\"^Leave the merchant to his work.\",\"/str\",\"/ev\",{\"*\":\".^.c-4\",\"flg\":4},{\"c-0\":[\"\\n\",\"ev\",{\"VAR?\":\"found_passage\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"You found the side passage yourself? Then you know more than the men who sell directions to it.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"They say a narrow passage beyond the workshop leads to a spring that sings after sunset. I heard it from a boatman; I have never tasted its water.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",\"#\",\"^command:passage_rumor\",\"/#\",\"#\",\"^command:water_rumor\",\"/#\",{\"->\":\"farewell\"},null],\"c-1\":[\"\\n\",\"^\\\"The courier needs provisions. Bring the agreed goods before the deadline; the payment is set aside.\\\"\",\"\\n\",\"#\",\"^command:accept_provisions\",\"/#\",{\"->\":\"farewell\"},null],\"c-2\":[\"\\n\",\"^\\\"Find the courier during working hours. The workshop bench is yours to use, but a deadline waits for no oven.\\\"\",\"\\n\",{\"->\":\"farewell\"},null],\"c-3\":[\"\\n\",\"^\\\"The courier spoke well of you. Reliable hands are worth more than loud promises.\\\"\",\"\\n\",{\"->\":\"farewell\"},null],\"c-4\":[\"\\n\",\"end\",null]}],null],\"farewell\":[[\"ev\",\"str\",\"^Thank him and leave.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"found_passage\"},false,{\"VAR=\":\"found_dry_basin\"},false,{\"VAR=\":\"has_delivery\"},false,{\"VAR=\":\"finished_delivery\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
+        "queries": {
+          "found_passage": {
+            "kind": "confirmed",
+            "id": "claim.passage"
+          },
+          "found_dry_basin": {
+            "kind": "confirmed",
+            "id": "claim.dry_basin"
+          },
+          "has_delivery": {
+            "kind": "accepted",
+            "id": "work.provisions"
+          },
+          "finished_delivery": {
+            "kind": "completed",
+            "id": "work.provisions"
+          }
+        },
+        "actions": {
+          "passage_rumor": {
+            "kind": "hear",
+            "id": "claim.passage"
+          },
+          "water_rumor": {
+            "kind": "hear",
+            "id": "claim.water"
+          },
+          "accept_provisions": {
+            "kind": "accept_job",
+            "id": "work.provisions"
+          }
+        }
+      }
     }
   }
 }

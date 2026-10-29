@@ -51,6 +51,7 @@ func _run() -> void:
 	_gameplay_restart(args[0], args[1] + "-gameplay")
 	_connected_restart(args[0], args[1] + "-connected")
 	_region_restart(args[0], args[1] + "-regions")
+	_narrative_restart(args[0], args[1] + "-narrative")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -121,3 +122,22 @@ func _region_restart(mode: String, directory: String) -> void:
 		DirAccess.remove_absolute(directory)
 	game.session.close()
 	print("REGION RESTART " + mode + " checked")
+
+func _narrative_restart(mode: String, directory: String) -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dev/fixtures/linked_world.json"))
+	var m := GameplayModel.create(data, "world.narrative-restart")
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(m.move_actor("shop", "a:player", 620, 160).ok and m.talk("open", "a:player", "a:merchant").ok and m.talk("rumor", "a:player", "a:merchant", 0, 1).ok, "rumor before process restart")
+		expect(store.save(m.session).ok, "save pending Ink choice")
+	else:
+		expect(m.adopt(store.load_candidate(m.session)), "restore real Ink conversation process")
+		expect(m.session.snapshot().knowledge.get("claim.water") == "heard", "rumor certainty survives restart")
+		var record := m.narrative.conversation(m.session.snapshot(), "a:player")
+		expect(record.turns.size() == 2 and record.frame.choices.size() == 1, "same pending choice after restart")
+		expect(m.talk("finish", "a:player", "a:merchant", 0, 2).ok, "continue saved Ink cursor")
+		expect(m.narrative.conversation(m.session.snapshot(), "a:player").frame.ended, "conversation ends normally")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	m.session.close()
+	print("NARRATIVE RESTART " + mode + " checked")
