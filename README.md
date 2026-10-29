@@ -30,7 +30,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 
 ## Status — 29 October 2026
 
-**The first gameplay rules are playable in a disposable playground.** The reviewed transactional foundation was merged in PR #11; PR #10 was closed as superseded. You can walk, collect finite goods, store/retrieve them, buy/sell with a merchant and save/load the resulting world. See [first gameplay scope and evidence](docs/technical/FIRST-GAMEPLAY.md). This is a test environment, not the game's final city, artwork or story. BTL Ink integration and platform exports remain unverified.
+**Connected livelihood gameplay is playable in the disposable playground.** Collect/store/trade goods, accept optional delivery jobs, prepare provisions over active-play seconds, wait for a recipient's routine and deliver for a reserved one-time payment. Waiting advances the world clock, NPC locations/availability and consequential deadlines. Save/load retains work, reservations and partial preparation. See [connected gameplay evidence](docs/technical/CONNECTED-GAMEPLAY.md). This is test content, not the final city, artwork or story. BTL Ink integration and platform exports remain unverified.
 
 ### Agreed
 - **Engine:** Godot; **rendering:** detailed 2D high-resolution pixel-art direction, fixed elevated front-readable 3/4 oblique view (not true isometric).
@@ -81,12 +81,18 @@ These are examples of interaction between systems—not mandatory quests or prom
 6. Prefer lightweight local validation; no GitHub Actions without a real need.
 7. Capture significant design changes in the Decision Register; GitHub Issues are the implementation backlog.
 
-## Local foundation verification
+## Run and verify
 
 Open `project.godot` with Godot Standard 4.7.2 and click **Open gameplay playground**.
 Use arrows/WASD or tap the map, approach an object and use the action buttons.
 Native **Save/Load** retains goods, money and position. No offline time is added.
-The sample prices, bag size and layout are replaceable test data under `dev/fixtures`.
+The **Work and craft** tab exposes jobs and preparation; **Wait1h/Wait6h** advance
+world time. One sample loop: collect two grain and one date, accept the provisions
+job near the merchant, prepare at the bench, wait until 09:00, then find the courier
+and deliver. Other work and ordinary trading remain optional.
+
+Sample content/tuning lives under `dev/fixtures`. The connected playground uses a
+new development save profile; older playground files are preserved, not migrated.
 
 Use Godot **Standard 4.7.2**:
 

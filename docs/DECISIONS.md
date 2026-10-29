@@ -49,6 +49,7 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 | --- | --- | --- |
 | D-038 | Provisional | ADR-002 is the engineering baseline merged in #11 after review and executed Godot tests: detached candidates, whole-request rollback, due/FIFO ordering, stable IDs, strict validation and native A/B recovery. It remains open to evidence-based technical refinement and is not a completed platform acceptance claim. |
 | D-039 | Provisional | Owner-authorized first gameplay increment (#12): aggregate ordinary goods in one container ledger, data-defined stacking/capacity, static container access, finite wallets/stock and atomic quoted trade, with region/reach checks. The disposable playground's values and movement presentation are not final game design. Unique items, legal ownership/theft, jobs, crafting and dynamic economy remain future scope. |
+| D-040 | Provisional | #14 connected gameplay batch: optional one-shot supply jobs hold their reward in Commerce; active preparation reserves inputs in Inventory, pauses away from its station and releases inputs on cancellation. Output-space failure leaves preparation ready to collect. World-time waiting resolves deadlines; in-region NPC routines are pure time lookups. Sample tuning and these bounded policies do not ratify every livelihood proposal or final release scope. |
 
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.

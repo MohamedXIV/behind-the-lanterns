@@ -31,5 +31,13 @@ Use **Locked**, **Provisional**, **Open**, **Deferred** consistently. Do not sil
 ## Repository workflow
 GitHub is the project source of truth. Inspect current main, open PRs, and issues before changes. Make one coherent branch/PR per bounded batch. Never force-push main. No mass issue generation or competing feature branches.
 
+**Current gameplay execution policy — owner direction in #14:** Build a substantial
+connected gameplay batch code-first. Defer comprehensive test authoring/runs until
+the implementation and player-facing integration are complete; do not use stepwise
+TDD or rerun full suites after each small feature. Compilation checks are permitted.
+At the end run regression, gameplay/UI and save/restart verification together, fix
+failures, and merge only after the final combined verification succeeds.
+
 ## Technology constraints
 Godot Standard 4.7.2, typed GDScript-first, session-scoped composition and selective event-driven/lazy world simulation are accepted in **docs/adr/ADR-001-RUNTIME-FOUNDATION.md**. Web remains a target. [Kiosk on the Nile](https://github.com/MohamedXIV/kiosk-on-the-nile) is verified reference evidence for Godot 4.7.2 + GDScript + inkgd on Web; do not invent a C# prerequisite for Ink. Mobile export and BTL-specific integration still require checks. Read the [Life & Livelihood GDD](docs/08-LIFE-LIVELIHOOD-GDD.md) before implementing inventory, crafting, farming, fishing, housing or trade. Favor text-first assets and agent-readable code; avoid binary/graph-only gameplay logic without a compelling case.
+

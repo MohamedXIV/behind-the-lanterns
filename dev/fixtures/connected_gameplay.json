@@ -1,0 +1,307 @@
+{
+  "world": {
+    "regions": [
+      "region.playground",
+      "region.remote"
+    ],
+    "definitions": [
+      "actor.resident",
+      "object.storage",
+      "object.supplies",
+      "actor.merchant",
+      "item.dates",
+      "item.grain",
+      "item.vessel",
+      "actor.courier",
+      "object.workbench",
+      "item.provisions"
+    ],
+    "entities": {
+      "a:player": {
+        "definition_id": "actor.resident",
+        "region_id": "region.playground"
+      },
+      "a:supplies": {
+        "definition_id": "object.supplies",
+        "region_id": "region.playground"
+      },
+      "a:chest": {
+        "definition_id": "object.storage",
+        "region_id": "region.playground"
+      },
+      "a:private": {
+        "definition_id": "object.storage",
+        "region_id": "region.playground"
+      },
+      "a:merchant": {
+        "definition_id": "actor.merchant",
+        "region_id": "region.playground"
+      },
+      "a:courier": {
+        "definition_id": "actor.courier",
+        "region_id": "region.playground"
+      },
+      "a:workbench": {
+        "definition_id": "object.workbench",
+        "region_id": "region.playground"
+      }
+    },
+    "facts": {},
+    "claims": []
+  },
+  "inventory": {
+    "items": {
+      "item.dates": {
+        "label": "Dates",
+        "stack_limit": 5
+      },
+      "item.grain": {
+        "label": "Grain",
+        "stack_limit": 10
+      },
+      "item.vessel": {
+        "label": "Clay vessel",
+        "stack_limit": 1
+      },
+      "item.provisions": {
+        "label": "Packed provisions",
+        "stack_limit": 5
+      }
+    },
+    "containers": {
+      "a:player": {
+        "slots": 3,
+        "owner_id": "a:player",
+        "access": "owner",
+        "items": {}
+      },
+      "a:supplies": {
+        "slots": 20,
+        "owner_id": "",
+        "access": "public",
+        "items": {
+          "item.dates": 12,
+          "item.grain": 8,
+          "item.vessel": 1
+        }
+      },
+      "a:chest": {
+        "slots": 6,
+        "owner_id": "a:player",
+        "access": "owner",
+        "items": {}
+      },
+      "a:private": {
+        "slots": 3,
+        "owner_id": "a:merchant",
+        "access": "owner",
+        "items": {
+          "item.dates": 2
+        }
+      },
+      "a:merchant": {
+        "slots": 20,
+        "owner_id": "a:merchant",
+        "access": "trade",
+        "items": {
+          "item.dates": 6,
+          "item.grain": 10,
+          "item.vessel": 2
+        }
+      },
+      "a:courier": {
+        "slots": 12,
+        "owner_id": "a:merchant",
+        "access": "owner",
+        "items": {}
+      }
+    }
+  },
+  "economy": {
+    "wallets": {
+      "a:player": 10,
+      "a:merchant": 80
+    },
+    "shops": {
+      "a:merchant": {
+        "prices": {
+          "item.dates": {
+            "buy_price": 3,
+            "sell_price": 2
+          },
+          "item.grain": {
+            "buy_price": 2,
+            "sell_price": 1
+          },
+          "item.vessel": {
+            "buy_price": 8,
+            "sell_price": 5
+          },
+          "item.provisions": {
+            "buy_price": 6,
+            "sell_price": 4
+          }
+        }
+      }
+    }
+  },
+  "interactions": {
+    "actors": [
+      "a:player"
+    ],
+    "bounds": {
+      "width": 760,
+      "height": 420
+    },
+    "reach": 85,
+    "positions": {
+      "a:player": {
+        "x": 100,
+        "y": 160
+      },
+      "a:supplies": {
+        "x": 160,
+        "y": 160
+      },
+      "a:chest": {
+        "x": 360,
+        "y": 160
+      },
+      "a:private": {
+        "x": 360,
+        "y": 310
+      },
+      "a:merchant": {
+        "x": 620,
+        "y": 160
+      },
+      "a:courier": {
+        "x": 620,
+        "y": 380
+      },
+      "a:workbench": {
+        "x": 220,
+        "y": 320
+      }
+    }
+  },
+  "presentation": {
+    "player_id": "a:player",
+    "walk_speed": 210,
+    "labels": {
+      "a:player": "You",
+      "a:supplies": "Shared supplies",
+      "a:chest": "Your chest",
+      "a:private": "Private chest",
+      "a:merchant": "Merchant",
+      "a:courier": "Courier",
+      "a:workbench": "Preparation bench"
+    }
+  },
+  "start_minute": 480,
+  "npcs": {
+    "a:merchant": {
+      "period_minutes": 1440,
+      "slots": [
+        {
+          "start": 0,
+          "x": 700,
+          "y": 80,
+          "available": false,
+          "activity": "Resting"
+        },
+        {
+          "start": 360,
+          "x": 620,
+          "y": 160,
+          "available": true,
+          "activity": "Trading"
+        },
+        {
+          "start": 1080,
+          "x": 700,
+          "y": 80,
+          "available": false,
+          "activity": "Home for the night"
+        }
+      ]
+    },
+    "a:courier": {
+      "period_minutes": 1440,
+      "slots": [
+        {
+          "start": 0,
+          "x": 620,
+          "y": 380,
+          "available": false,
+          "activity": "Off duty"
+        },
+        {
+          "start": 540,
+          "x": 600,
+          "y": 320,
+          "available": true,
+          "activity": "Preparing a departure"
+        },
+        {
+          "start": 900,
+          "x": 460,
+          "y": 300,
+          "available": true,
+          "activity": "Sorting deliveries"
+        },
+        {
+          "start": 1080,
+          "x": 620,
+          "y": 380,
+          "available": false,
+          "activity": "Off duty"
+        }
+      ]
+    }
+  },
+  "crafting": {
+    "stations": {
+      "a:workbench": {
+        "access": "public",
+        "owner_id": ""
+      }
+    },
+    "recipes": {
+      "recipe.provisions": {
+        "label": "Pack provisions",
+        "station_definition": "object.workbench",
+        "ingredients": {
+          "item.grain": 2,
+          "item.dates": 1
+        },
+        "outputs": {
+          "item.provisions": 2
+        },
+        "duration_seconds": 3
+      }
+    }
+  },
+  "work": {
+    "work.provisions": {
+      "label": "Provisions for the courier",
+      "giver_id": "a:merchant",
+      "recipient_id": "a:courier",
+      "requirements": {
+        "item.provisions": 2
+      },
+      "reward": 12,
+      "deadline_minutes": 360
+    },
+    "work.grain": {
+      "label": "Grain for the courier",
+      "giver_id": "a:merchant",
+      "recipient_id": "a:courier",
+      "requirements": {
+        "item.grain": 4
+      },
+      "reward": 6,
+      "deadline_minutes": 180
+    }
+  }
+}
