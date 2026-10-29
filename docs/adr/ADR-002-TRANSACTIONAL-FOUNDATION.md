@@ -1,6 +1,6 @@
 # ADR-002 — Transactional session foundation
 
-**Status: Implementation decision proposed for review in this PR** · 2026-10-29.
+**Status: Accepted engineering baseline via owner-authorized review and merge of PR #11** · 2026-10-29.
 Refines ADR-001; no gameplay scope or tuning is ratified by implementation.
 
 ## Evidence and audit
