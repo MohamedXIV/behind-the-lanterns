@@ -10,11 +10,14 @@ static func create(config: Dictionary, world: Dictionary, interaction_config: Di
 	var bounds: Variant = interaction_config.get("bounds")
 	if not WorldData.keys(bounds, ["width", "height"]): return null
 	if not WorldData.integer(bounds.width, 1) or not WorldData.integer(bounds.height, 1): return null
+	if not interaction_config.get("regions", {}) is Dictionary: return null
 	var geometry := WorldGeometry.create(interaction_config.get("geometry", {"radius": 0, "obstacles": []}), Vector2(bounds.width, bounds.height))
 	if geometry == null: return null
 	for id in config:
 		var routine: Variant = config[id]
 		if not WorldData.id(id) or not world.entities.has(id) or id in interaction_config.actors: return null
+		geometry = WorldGeometry.create(interaction_config.get("regions", {}).get(world.entities[id].region_id, interaction_config.get("geometry", {"radius": 0, "obstacles": []})), Vector2(bounds.width, bounds.height))
+		if geometry == null: return null
 		if not WorldData.keys(routine, ["period_minutes", "slots"]) or not WorldData.integer(routine.period_minutes, 1): return null
 		if not routine.slots is Array or routine.slots.is_empty(): return null
 		var previous: int = -1

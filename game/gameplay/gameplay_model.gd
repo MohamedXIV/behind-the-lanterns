@@ -34,7 +34,7 @@ static func create(data: Dictionary, world_id: String) -> GameplayModel:
 	model.npcs = NpcScheduleRules.create(data.get("npcs", {}), data.world, data.interactions)
 	if model.npcs == null: return null
 	model.interactions = InteractionRules.create(data.interactions, model.inventory, model.commerce, model.npcs)
-	if model.interactions == null: return null
+	if model.interactions == null or not model.interactions.validate_world(data.world): return null
 	for npc in model.npcs.ids():
 		if not npc in model.interactions.target_ids(): return null
 	for item_id in model.inventory.item_ids():
@@ -101,3 +101,9 @@ func adopt(candidate: GameSession) -> bool:
 	session = candidate
 	session_replaced.emit(candidate)
 	return true
+
+func enter(intent: String, actor_id: String, portal_id: String) -> OperationResult:
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return interactions.enter(tx, actor_id, portal_id))
+
+func actor_region(actor_id: String) -> String:
+	return session.snapshot().entities[actor_id].region_id

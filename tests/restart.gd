@@ -50,6 +50,7 @@ func _run() -> void:
 		DirAccess.remove_absolute(args[1])
 	_gameplay_restart(args[0], args[1] + "-gameplay")
 	_connected_restart(args[0], args[1] + "-connected")
+	_region_restart(args[0], args[1] + "-regions")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -101,3 +102,22 @@ func _connected_restart(mode: String, directory: String) -> void:
 		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
 		DirAccess.remove_absolute(directory)
 	print("CONNECTED RESTART %s %s" % [mode, "FAIL" if _failed else "PASS"])
+
+func _region_restart(mode: String, directory: String) -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dev/fixtures/linked_world.json"))
+	var game := GameplayModel.create(data, "world.region-restart")
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(game.act("take", "a:player", "a:supplies", "item.dates", 2, "take").ok, "collect for interior")
+		expect(game.move_actor("door", "a:player", 100, 300).ok and game.enter("enter", "a:player", "a:workshop-door").ok, "enter before restart")
+		expect(game.move_actor("chest", "a:player", 140, 220).ok and game.act("store", "a:player", "a:indoor-chest", "item.dates", 1, "store").ok, "store inside before restart")
+		expect(store.save(game.session).ok, "save interior")
+	else:
+		expect(game.adopt(store.load_candidate(game.session)), "restore interior process")
+		expect(game.actor_region("a:player") == "region.workshop" and game.position_of("a:player") == Vector2(140, 220), "region and position survive restart")
+		expect(game.inventory.contents(game.session.snapshot(), "a:indoor-chest").get("item.dates", 0) == 1, "interior goods survive restart")
+		expect(game.move_actor("exit-walk", "a:player", 100, 300).ok and game.enter("exit", "a:player", "a:workshop-exit").ok, "exit after restart")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	game.session.close()
+	print("REGION RESTART " + mode + " checked")
