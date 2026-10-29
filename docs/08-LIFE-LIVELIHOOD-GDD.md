@@ -402,18 +402,18 @@ Gathering from another person's property, carrying contraband, or entering a for
 ## 12A. Architecture design — focused composition and reusable behavior policies
 
 ### 12A.1 Why favor composition?
-**Candidate architectural policy, awaiting owner acceptance:** use shallow inheritance for genuine *is-a* relationships (e.g., a definition is a Resource, an item definition is a kind of authored definition), and **composition** for independent cross-cutting capabilities such as perishability, durability, placeability, and consumability. A future cooked meal, raw fish, herbal bundle and flower bouquet could all expire without inheriting from the same \`CookedFood\` class.
+**Candidate architectural policy, awaiting owner acceptance:** use shallow inheritance for genuine *is-a* relationships (e.g., a definition is a Resource, an item definition is a kind of authored definition), and **composition** for independent cross-cutting capabilities such as perishability, durability, placeability, and consumability. A future cooked meal, raw fish, herbal bundle and flower bouquet could all expire without inheriting from the same `CookedFood` class.
 
-**Do not** model each combination through subclass pyramids such as \`Item → Food → CookedFood → PerishableCookedFood\` or attach a Node to every static item stack.
+**Do not** model each combination through subclass pyramids such as `Item → Food → CookedFood → PerishableCookedFood` or attach a Node to every static item stack.
 
 ### 12A.2 Two kinds of composition
-1. **Definition composition:** inspector/data-authored capability policies. Example \`ItemDef\` optionally references a \`PerishabilityPolicy\` with an in-game lifetime, storage/environment rules and expiry outcome. Other independent policies could describe equipment durability or placement constraints.
-2. **Runtime composition:** an Item Instance/stack records only mutable state that policy needs, e.g. \`created_at_world_minutes\`, \`expires_at_world_minutes\` or a \`freshness_state\`. The authoritative ItemStore persists it; no new global SpoilageManager is required at first.
+1. **Definition composition:** inspector/data-authored capability policies. Example `ItemDef` optionally references a `PerishabilityPolicy` with an in-game lifetime, storage/environment rules and expiry outcome. Other independent policies could describe equipment durability or placement constraints.
+2. **Runtime composition:** an Item Instance/stack records only mutable state that policy needs, e.g. `created_at_world_minutes`, `expires_at_world_minutes` or a `freshness_state`. The authoritative ItemStore persists it; no new global SpoilageManager is required at first.
 
-Prefer small typed Godot **Resource** policies for authored reusable data, or plain \`RefCounted\` rule objects for pure calculations if the overall architecture agrees. A \`Resource\` definition may be shared across many instances: **never mutate a shared definition when one meal spoils**.
+Prefer small typed Godot **Resource** policies for authored reusable data, or plain `RefCounted` rule objects for pure calculations if the overall architecture agrees. A `Resource` definition may be shared across many instances: **never mutate a shared definition when one meal spoils**.
 
 ### 12A.3 Spoilage (future capability, not automatic launch feature)
-A prepared meal might be fresh for eight *in-game hours* (example value). So could a raw fish or a medicinal plant use the same capability with different data. The item store need not run 1 timer/Node/\`_process()\` per item:
+A prepared meal might be fresh for eight *in-game hours* (example value). So could a raw fish or a medicinal plant use the same capability with different data. The item store need not run 1 timer/Node/`_process()` per item:
 - Record a stable world-clock timestamp or deadline on acquisition/creation, and persistent per-item state where justified.
 - On a meaningful query/use/transfer, or a targeted schedule/reconciliation point, derive whether the item is fresh, stale or spoiled.
 - If a state transition has gameplay consequences, apply it **once** through the owning inventory/item state service. A visual UI update must not perform the mutation.
@@ -426,16 +426,16 @@ A prepared meal might be fresh for eight *in-game hours* (example value). So cou
 
 ### 12A.4 Reuse by rules, not one magical effects engine
 The same composition principle can apply to:
-- \`Perishable\` — food, some fish, herbs and flowers.
-- \`Durable\` — a tool or fishing rod *if* gear wear adds interesting choices; don't force all items to have durability.
-- \`Placeable\` — furniture, lamps, containers and maybe crafting stations, with spatial validity handled by Placement.
-- \`Consumable\` — food and appropriate single-use items.
-- \`TemporaryEffect\` — specific potions or artifacts whose magic expires.
+- `Perishable` — food, some fish, herbs and flowers.
+- `Durable` — a tool or fishing rod *if* gear wear adds interesting choices; don't force all items to have durability.
+- `Placeable` — furniture, lamps, containers and maybe crafting stations, with spatial validity handled by Placement.
+- `Consumable` — food and appropriate single-use items.
+- `TemporaryEffect` — specific potions or artifacts whose magic expires.
 
 These are **capability examples** to guide extensible data design, not an order to implement five behavior frameworks up front. Traits are not a replacement for coherent service ownership: Inventory transfers items; Farming grows crops; Fishing resolves catches; Placement validates furniture.
 
 ### 12A.5 Tests required before implementing shared policies
-- Two unrelated items share \`Perishable\` with distinct durations but no inheritance dependency.
+- Two unrelated items share `Perishable` with distinct durations but no inheritance dependency.
 - Many item instances share one immutable definition without sharing runtime spoilage state.
 - Region unload, travel and sleep advance the same canonical clock; no realtime offline decay.
 - Opening inventory repeatedly or saving/reloading cannot duplicate spoilage effects.
@@ -444,7 +444,7 @@ These are **capability examples** to guide extensible data design, not an order 
 
 ### 12A.6 Minimal GDScript sketch (conceptual only)
 
-\`\`\`gdscript
+```gdscript
 # Authored data (shared among instances; exact schema TBD)
 class_name PerishabilityPolicy
 extends Resource
@@ -456,9 +456,9 @@ extends Resource
 # Querying an item calls a pure calculator with the WorldClock:
 #   calculate_freshness(policy, item_state, world_clock_time)
 # The owning ItemStore commits a transition if one is required.
-\`\`\`
+```
 
-This sketch is not a real code file and does not constitute an approved project structure. Use \`Resource\` for authored policy and serializable data, not as a universal substitute for \`WorldState\` or \`SaveService\`.
+This sketch is not a real code file and does not constitute an approved project structure. Use `Resource` for authored policy and serializable data, not as a universal substitute for `WorldState` or `SaveService`.
 
 ---
 
