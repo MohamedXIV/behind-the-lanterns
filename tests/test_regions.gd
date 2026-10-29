@@ -1,0 +1,33 @@
+extends RefCounted
+
+func run(t) -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dev/fixtures/linked_world.json"))
+	var m := GameplayModel.create(data, "world.regions")
+	t.check(m != null, "linked world composes")
+	if m == null: return
+	t.check(m.act("supplies", "a:player", "a:supplies", "item.dates", 2, "take").ok, "collect before indoor storage")
+	t.check(m.act("grain", "a:player", "a:supplies", "item.grain", 2, "take").ok, "ingredients for workshop")
+	var initial := m.session.snapshot()
+	t.check(not m.enter("far", "a:player", "a:workshop-door").ok and initial == m.session.snapshot(), "distant entry atomic failure")
+	t.check(m.move_actor("approach", "a:player", 100, 300).ok, "approach doorway")
+	t.check(m.enter("enter", "a:player", "a:workshop-door").ok, "enter workshop")
+	t.check(m.actor_region("a:player") == "region.workshop" and m.position_of("a:player") == Vector2(100, 300), "region and spawn commit together")
+	t.check(m.move_actor("fractional", "a:player", 100.000000001, 299.999984741211).ok, "fractional world position commits")
+	var restored := SessionCodec.decode(SessionCodec.encode(m.session), m.session)
+	t.check(restored != null and restored.snapshot() == m.session.snapshot(), "fractional position exact save readback")
+	if restored != null: restored.close()
+	var entered := m.session.snapshot()
+	t.check(m.enter("enter", "a:player", "a:workshop-door").ok and entered == m.session.snapshot(), "entry replay idempotent")
+	t.check(not m.act("remote-take", "a:player", "a:supplies", "item.dates", 1, "take").ok, "no cross-region reach")
+	t.check(m.move_actor("storage", "a:player", 140, 220).ok, "walk inside")
+	t.check(m.act("store", "a:player", "a:indoor-chest", "item.dates", 1, "store").ok, "indoor storage uses existing inventory")
+	t.check(m.start_craft("indoor-craft", "a:player", "recipe.provisions", "a:indoor-bench").ok and m.progress_craft("partial", "a:player", 1).ok, "preparation runs indoors")
+	t.check(not m.move_actor("wall", "a:player", 360, 200).ok, "interior geometry governs movement")
+	t.check(m.move_actor("exit-approach", "a:player", 100, 300).ok and m.enter("exit", "a:player", "a:workshop-exit").ok, "return outdoors")
+	t.check(m.actor_region("a:player") == "region.playground" and m.inventory.contents(m.session.snapshot(), "a:indoor-chest").get("item.dates", 0) == 1, "unloaded interior retains goods")
+	t.check(not m.progress_craft("remote-progress", "a:player", 1).ok, "preparation pauses across region boundary")
+	t.check(m.enter("return", "a:player", "a:workshop-door").ok and m.move_actor("bench", "a:player", 220, 220).ok and m.progress_craft("finish", "a:player", 2).ok, "return and finish reserved preparation")
+	t.check(m.inventory.contents(m.session.snapshot(), "a:player").get("item.provisions", 0) == 2, "workshop yields reusable delivery goods")
+	m.session.close()
+	data.interactions.portals["a:workshop-door"].region_id = "region.missing"
+	t.check(GameplayModel.create(data, "world.invalid") == null, "unknown destination rejected")

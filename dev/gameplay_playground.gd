@@ -4,7 +4,7 @@ extends Control
 
 signal session_changed(candidate: GameSession)
 
-const FIXTURE: String = "res://dev/fixtures/connected_gameplay.json"
+const FIXTURE: String = "res://dev/fixtures/linked_world.json"
 const RECOVERY: String = "user://connected-gameplay-playground"
 const ACTION_HEIGHT: float = 48.0
 var _model: GameplayModel
@@ -55,7 +55,7 @@ func _ready() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 12)
 	margin.add_child(column)
-	_label(column, "RULES PLAYGROUND  /  disposable test content", 23)
+	_label(column, "Behind the Lanterns  /  working world prototype", 23)
 	_label(column, "Walk or tap the map. Collect supplies, accept a job, prepare goods, then find the recipient.", 16)
 	var time_row := HBoxContainer.new()
 	column.add_child(time_row)
@@ -273,7 +273,7 @@ func _refresh(_revision: int) -> void:
 	if not npc.is_empty(): _prices.text += "\n" + npc.activity + ("" if npc.available else " (unavailable)")
 	for verb in _buttons:
 		_buttons[verb].disabled = not shop or not _model.interactions.available(_target(), snapshot.minute) if verb in ["buy", "sell"] else not _model.inventory.can_access(_actor, _target())
-	_clock.text = "Day %d · %02d:%02d" % [int(snapshot.minute / WorldClock.MINUTES_PER_DAY) + 1, int(snapshot.minute / 60) % 24, int(snapshot.minute) % 60]
+	_clock.text = _region_label() + " · " + "Day %d · %02d:%02d" % [int(snapshot.minute / WorldClock.MINUTES_PER_DAY) + 1, int(snapshot.minute / 60) % 24, int(snapshot.minute) % 60]
 	_livelihood.refresh()
 	_map.queue_redraw()
 
@@ -300,6 +300,17 @@ func _use_target(id: String) -> void:
 	if not result.ok:
 		_show_message(result.code)
 		return
+	if _model.interactions.is_portal(id):
+		result = _model.enter(_intent("enter"), _actor, id)
+		if result.ok:
+			_map.sync_position()
+			_show_message("Entered " + _region_label())
+		else: _show_message(result.code)
+		return
 	_select_target(id)
 	_tabs.current_tab = 1 if id in _model.crafting.station_ids() or not _model.npcs.projection(id, _model.session.now()).is_empty() else 0
 	_show_message("Using " + str(_data.presentation.labels.get(id, id)) + ". Choose an action; goods and payments require confirmation.")
+
+func _region_label() -> String:
+	var region := _model.actor_region(_actor)
+	return _data.presentation.get("region_labels", {}).get(region, region)

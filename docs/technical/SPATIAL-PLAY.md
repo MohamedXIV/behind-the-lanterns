@@ -24,3 +24,28 @@ real node/input UI tests and separate-process native restart. New coverage inclu
 clearance, deterministic routed segments, unreachable destinations, transaction
 rollback, through-wall permission, invalid NPC destinations, touch routing,
 keyboard collision and contextual bench access. No GitHub Actions used.
+
+## Linked rooms (#14)
+
+The default `linked_world.json` adds a courtyard/workshop pair. Door use commits
+actor region and destination position in the same transaction. Each region can
+override collision geometry; other rules use the actor's current region. The
+reusable `game/world/world_view.gd` renders and picks only current-region entities.
+Local navigation paths reset on entry/load. Indoor storage and a second usable
+preparation bench share the existing inventory, reservations and active seconds.
+Temporary silhouettes/shadows/front faces preserve oblique 2D intent without final
+art. NPC routines remain discrete in-region projections, not simulated walking.
+
+No new persistent domain/schema or scene manager. Rooms currently share a logical
+extent; regions are composed from data by one reusable view. Prior development
+content saves are retained but rejected by fingerprint. Dynamic doors, cross-region
+NPC routines, device/Web acceptance and Ink remain future work.
+
+Final linked-room evidence: Godot 4.7.2.stable.official.ed1daf0bf,
+`tools/test-headless.sh`: 370 regression assertions, 39 actual node/input UI
+assertions, original/connected/region separate-process restart and startup PASS.
+No warnings/errors. Tests cover indoor custody, partial preparation leaving and
+returning, door replay/invalid destinations, touch entry/exit, interior load and
+fresh-process region restoration. Screen conversion exposed a pre-existing float
+JSON readback mismatch: committed movement now uses binary-exact 1/256-unit
+coordinates, checked against collision after rounding, with exact codec coverage.
