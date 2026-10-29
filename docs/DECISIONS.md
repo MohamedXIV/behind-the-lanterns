@@ -33,7 +33,13 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 | D-026 | Locked | **Web is a target platform** as well as native mobile and later desktop/Steam. |
 | D-027 | Provisional | **Typed GDScript-first** is owner's preferred approach; final lifetime/DI and language ADR remains open. C++/Rust extension only if measured need and platform support are confirmed. |
 | D-028 | Provisional (reference evidence; not a BTL feature decision) | **Kiosk on the Nile** has working Godot 4.7.2 + GDScript + Godot-4 inkgd + Ink JSON workflow and Web previews; BTL-specific integration/mobile export are not verified. |
-| D-029 | Open | Adopt, revise or reject the proposed Inventory/Crafting/Cooking/Farming/Fishing/Housing/Trade domain contracts in GDD 08; exact fishing interactions, farming care, placement and launch scope remain undecided. |
+| D-029 | Open | Approve the shared Inventory/Crafting/Cooking/Farming/Fishing/Housing/Trade boundaries in GDD 08; gameplay directions in D-030–033 are confirmed, but precise schemas, tuning and launch scope remain open. |
+| D-030 | Locked | Fishing begins with bait choice and a small timing minigame, with fish availability strongly differentiated by location; start with limited species, expand later into exotic/fantasy fish and sea life. |
+| D-031 | Locked | Farming supports crop-specific environment, soil, required watering and growth time. Skills may ease selected requirements within believable limits; basic environmental impossibilities remain meaningful. |
+| D-032 | Locked | Crafting actions take a few seconds of active play, not return-later mobile timers. Exact duration/cancellation details are open. |
+| D-033 | Locked | Home furniture/decor placement will be deliberately simple and constrained for fixed 2D; avoid complex construction/build-mode scope. |
+| D-034 | Provisional | Prefer shallow inheritance and focused composition of reusable item capabilities (e.g. future spoilage, durability, placement, consumability), plus bounded action-specific skill modifiers; no universal trait/effects engine is approved. |
+| D-035 | Open | Spoilage feature launch inclusion, storage effects and item expiry policies; farm watering cadence/failure, fish timing details, furniture snap model, and craft interruption rules. |
 
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.

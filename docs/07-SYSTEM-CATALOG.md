@@ -43,13 +43,13 @@ Status: **Core candidate**, **Feature candidate**, **Later**, or **Decision need
 | L03 | Ownership & Access | Which room/house/land/boat the player may use | Construction graphics | Feature |
 | L04 | Work / Small Jobs | Pay and proof of service for chores/deliveries | A permanently locked player career | Feature |
 | L05 | Trade / Vendors | Buy/sell rules, stock and availability | A fixed economic history of every world market | Feature |
-| L06 | Crafting / Learning | Recipes, ingredient requirements, learned techniques | Universal skill-tree gates | Feature |
-| L07 | Housing & Placement | Lodging, rooms, storage and valid furniture positions, delegated property access | A full room editor at launch or an independent item ledger | Feature |
-| L08 | Farming / Growing | Crop growth conditions and harvesting, optionally climate/soil compatibility | Turning game into a farming-first simulator | Later |
+| L06 | Crafting / Learning | Recipes, ingredient requirements, learned techniques, **short active-play production time** | Idle/mobile wait-to-return timers, universal skill-tree gates | Feature |
+| L07 | Housing & Placement | Lodging, rooms, storage, and **restricted simple 2D** furniture placement with property validation | A construction simulator or an independent item ledger | Feature |
+| L08 | Farming / Growing | Crop-specific soil/biome, watering requirements, growth time, harvest; consult bounded skill modifiers | Making farming mandatory or overriding impossible growing conditions | Feature |
 | L09 | Needs / Rest | Rest and light everyday needs if player-approved | Hard survival meters by default | Decision needed |
 | L10 | Character Skills | Limited progression in combat/speech/craft/life fields | Permanent supernatural magic mastery | Feature |
 | L11 | Companions | Animal bonds, follow behaviors, routine actions, care | Combat pet battalions or collectible rarity economy | Feature |
-| L12 | Fishing | Fishing spots, gear/activity state and catch resolution | Item ledger, every fish as a persistent simulated NPC | Feature |
+| L12 | Fishing | Bait + short timing interaction, strongly location-specific fish pools and catch result; expand exotic types later | Item ledger, omnipresent fish pools, every fish as a simulated NPC | Feature |
 | L13 | Gathering / World Sources | Physical gatherable source state, harvest availability, regrowth when designed | Inventory ledger or cultivated plot growth | Feature |
 | L14 | Cooking / Food Preparation | Food-specific recipes/station interaction and any approved timed processing | Another Inventory manager; forced complex cooking jobs | Feature |
 
@@ -83,7 +83,7 @@ Status: **Core candidate**, **Feature candidate**, **Later**, or **Decision need
 | X02 | Settings & Accessibility | Audio, vibration, input visibility, text scaling, safe area | Simulation truth | Feature |
 | X03 | Monetization Adapters | Optional ads toggle (free disable), platform ad SDK gateway, optional cosmetics | Predatory progression gates or economic simulation | Later |
 
-For the detailed design and authority boundaries of all everyday-life capabilities, read **[GDD 08 — Life & Livelihood Systems](08-LIFE-LIVELIHOOD-GDD.md)**. This table lists domains, **not** mandatory classes or initial-build commitments.
+For the detailed design and authority boundaries of all everyday-life capabilities, read **[GDD 08 — Life & Livelihood Systems](08-LIFE-LIVELIHOOD-GDD.md)**. Its §12A proposes **shallow inheritance + focused composable policy Resources** for cross-cutting qualities such as future perishability; shared skill modifiers are bounded by each activity's domain rules, not a universal effect manager. This table lists domains, **not** mandatory classes or initial-build commitments.
 
 ## Do NOT turn this table into 40 managers
 This is a **capability inventory**, not a mandate to create 40 subsystems/classes. For example:

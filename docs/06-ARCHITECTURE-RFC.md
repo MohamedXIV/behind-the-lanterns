@@ -84,6 +84,9 @@ Godot Engine / SceneTree
 - Do **not** introduce Microsoft.Extensions.DependencyInjection (or other container) without a demonstrated need.
 - Do not create one interface per trivial class; create abstractions at stateful, testable, boundary-crossing seams.
 
+### Proposed object modeling policy (pending owner approval)
+Shallow inheritance for real type hierarchies, **composition through small optional data/policy objects** for overlapping item capabilities (possible spoilage, durability, placeability), and independent instance state owned by canonical stores. Skills provide **action-specific bounded modifiers**, while Farming, Fishing and Crafting each retain authority over their rules. No per-item Nodes/timers, giant effects bus or deep subclass trees to express every mix of behaviors. See [GDD 08 §12A](08-LIFE-LIVELIHOOD-GDD.md).
+
 ## 5. Layers and ownership (proposed)
 **Content definitions:** stable IDs, immutable descriptions, config and authored Ink; Godot Resources / data files appropriate to the chosen language. Definitions are not save state.
 

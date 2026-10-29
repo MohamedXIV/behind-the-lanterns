@@ -1,5 +1,5 @@
 # GDD 08 — Life & Livelihood Systems
-**Game:** Behind the Lanterns · **Status:** Detailed design **proposal for owner review** · **Revision:** 0.1 · **Date:** 2026-10-29
+**Game:** Behind the Lanterns · **Status:** Detailed design **proposal for owner review** · **Revision:** 0.2 · **Date:** 2026-10-29
 
 > **Design mandate:** Everyday life must be a meaningful way to play, and adventure should naturally enrich it. These systems are designed to interact through a small common foundation, not become six global managers, a generic survival simulator, or a content-heavy vertical slice.
 
@@ -15,6 +15,13 @@
 - Region-specific rules can matter (a seed may physically exist yet fail to grow outside its natural conditions).
 - Fixed 2D oblique, mobile-first landscape Godot project; minimize appearance variation and heavy art/runtime production.
 - Systems-first and **very little disposable proving content**, with authored worlds growing after contracts are tested.
+
+### Newly confirmed by owner (2026-10-29)
+- **Fishing** starts with bait choice and a brief **timing minigame**; species availability is strongly tied to location, with a small initial roster and exotic/fantasy fish and sea creatures added later.
+- **Farming** begins small but its extensible crop rules account for **environment, soil, required watering and elapsed in-game growth time**. Skills may reasonably reduce friction in these requirements, not break hard biological/magical incompatibilities.
+- **Crafting** takes **a few active-play seconds**, not mobile-style wait-to-return timers. Exact lengths and interruption/cancel rules are still tuning questions.
+- **Home decoration** is deliberately constrained by the 2D view. No freeform building/construction simulator is needed.
+- User asked for architectural guidance on **composition vs inheritance**, and possible shared traits such as perishability and skill effects. The specific trait implementation remains **proposed**, not locked.
 
 ### Proposed here — not automatically approved
 - The precise subdivision of Inventory, Crafting, Cooking, Gathering, Fishing, Farming, Housing/Placement, Trade/Work.
@@ -201,8 +208,14 @@ Validate:
 
 On success, consume/reserve inputs and create output through the same item ledger. Do not lose inputs on a failed validation. If outcomes can vary, define the random seed/quality snapshot at the relevant commit boundary so save/load cannot reroll the same craft.
 
-### 6.4 Workflows
-Begin with simple `ingredients → output` when possible. Only introduce multi-step work orders, preparation phases, timers, equipment occupancy and frozen parameters if a specifically approved craft requires them. A single generic 500-state crafting engine for tea, woodwork and enchantment would be overengineering.
+### 6.4 Workflows — short active-play crafting (approved direction)
+Crafting should have a short **visible, in-session** duration measured in seconds, with feedback rather than an instant button press. It is **not** a mobile idle crafting queue requiring the player to return hours later. The world may still advance by an appropriate small amount if the in-world clock is designed to do so.
+
+**Proposed smallest state contract:** `Ready → InProgress → Completed/Cancelled`. A craft attempt validates required inputs and equipment once, captures necessary parameters, then resolves exactly once. Input consumption on start vs completion, refund/cancellation, station occupancy and whether game pause suspends progress remain open until a use case requires them.
+
+Do not introduce a general job scheduler, recipe step graph or offline timer solely to support a two-to-five-second action. Any longer cooking/artisan process is a later special case sharing the inventory/transaction rules, not a reason to complicate the initial craft.
+
+**Save safety:** an app suspension during crafting must neither duplicate output nor swallow ingredients silently. Choose resumable committed job or a documented consistent rollback, and test the interruption boundary. Exact time values are tuning parameters rather than constants embedded in code.
 
 ### 6.5 Craft specialization
 Cooking, sweets/drinks, textile work or other crafts may extend the same shared Inventory + basic recipe concepts, but unique mechanics are implemented locally. Do not make every craft identical merely to maximize abstraction.
@@ -253,8 +266,16 @@ Planting consumes one available seed and **creates one persistent planted instan
 - If an exotic seed is incompatible, clearly communicate that risk where possible; don't surprise-punish the player.
 - Rare compatibility variants are possible authored content, **not** a first milestone requirement.
 
-### 8.5 Time, care and fairness
-Growth uses game time and region conditions. No requirement to return to the application in real time. Crop watering or neglect penalties must be comfortable and player-readable. Whether crops can die, how often they need care, and whether seasons are simulated are **Open**; avoid implementing harsh decay by default.
+### 8.5 Growth, care, skill and fairness (owner-confirmed design direction)
+A crop definition may require a **compatible environment**, **appropriate soil**, **some number of watering events / sufficient moisture during growth**, and **elapsed in-game growth time**. Crop species set their own requirements. Start with a tiny set of crops, then extend definitions rather than copying scripts.
+
+**Hard versus soft conditions:** Some rules are hard constraints (e.g. a realm-exclusive plant cannot grow in ordinary soil); others are improvable thresholds (e.g. the number of adequate watering events, slightly imperfect soil, a modest growth delay). **Skills can make the latter easier within sensible limits.** Skill progression must not arbitrarily turn salt water into freshwater, eliminate every watering event, or cancel all location-specific identity.
+
+**Implementation recommendation, not approved exact formula:** allow a small policy or rules object to evaluate soil, climate and care; compute modifiers through a focused skill query for that action. Apply caps and a clearly defined order so `required_waterings - skill_reduction` cannot become nonsensical. Example skill improvements include one fewer watering at higher expertise, modest tolerance of suboptimal soil, or slightly faster growth; these are **examples, not all promised bonuses**.
+
+A watering requirement is **not** an instruction to make the player click three times in a row. The system should register meaningful care events or environmental moisture across the growth interval, with no artificial UI spam.
+
+Growth uses the **game clock**, never wall-clock time when the mobile app is closed. Death/neglect severity, crop seasons, exact watering counts and yields are **still open**; avoid pressure-driven daily chores by default. Region unload/load reconciles elapsed growth once, not once per frame.
 
 ### 8.6 Offscreen rules
 Unloaded fields need not run crop Nodes. Record enough per-plot state and time references to deterministically reconcile growth when time passes or the field loads, including cross-region travel and sleep. Never apply the same elapsed interval twice.
@@ -280,13 +301,18 @@ Player approaches real water/spot → checks permission/gear → begins interact
 
 One could fish from the shore, a jetty, or eventually a boat **only if authored locations and controls support it**. A rumor about a fishing spot may help locate it but must not cause the spot to exist.
 
-### 9.3 Gameplay model remains open
-Possible patterns:
-- Short timing/aiming interaction.
-- Simple patience/positioning system.
-- Light skill/gear-based action with clear outcomes.
+### 9.3 Fishing activity — bait + short timing interaction (owner-approved direction)
+**Initial gameplay:** select or prepare permitted bait, cast at an accessible place, and play a **short timing minigame** with an understandable success window. Timing and bait matter; random outcomes must remain readable rather than pure dice-roll failure. A missed timing attempt should have a clear, tuned result. Mobile landscape touch is the primary control constraint.
 
-No fishing minigame has been selected. For landscape mobile, the interaction should not require precision unsuitable for touch. No need for a full ecosystem AI sim that tracks each fish individually.
+**Strong geographic identity:** the available fish differ **substantially** between river, lagoon, harbor, coast, distant island or an otherworldly body of water. Use location/habitat-linked species pools, not one universal catch table with cosmetic name changes. Bait and environment influence eligible catches and probabilities, without guaranteeing a rare result; the location defines what is *possible*. A small authored starting roster is sufficient.
+
+**Future expansion:** unusual fish, mythic aquatic species, and fantasy sea-life encounters are possible later **without redesigning the common item/catch contract**. Not all sea creatures must become catchable inventory items, harmless collectibles or ordinary fish; they may be world actors, hazards, discoveries, or authored narrative encounters.
+
+**Skills:** fishing expertise may modestly widen the timing window, reduce fish escape likelihood, improve relevant feedback, or make bait usage more efficient. It must not cause freshwater species to appear in unrelated environments or guarantee exotic catches. Exact modifiers are not yet selected.
+
+**Single-result boundary:** select/commit a particular catch opportunity under controlled/seeded rules; don't reroll the species repeatedly when a UI redraws, player pauses, or restores a save. Resolve the catch as one item transfer on success. Bait consumption/recovery and session interruption behavior are tuning decisions.
+
+**Not required:** full simulated fish AI ecosystem, fishing skill grind, heavy mini-game variants for each species, hundreds of creatures at launch.
 
 ### 9.4 Result integration
 Fish can be cooked, sold, gifted, or used in an optional quest. Regional legality and ownership still apply. Fish are items after catch; Fishing does not become a second ItemStore.
@@ -310,10 +336,12 @@ Do not force a rigid mandatory chapter sequence; changing housing is a player-di
 ### 10.3 Decoration, not construction simulation
 Allow moving, rotating, placing, removing or replacing appropriate furniture and decor **within valid existing rooms/surfaces**. Do not promise user-constructed walls, free-form architecture remodeling, floorplan editing or a full Sims construction system in the first versions.
 
-### 10.4 Placement validity
-Candidate checks: property access, indoor/outdoor eligibility, floor index, footprint collision, doorway/navigation clearance, support/attachment, reserved utility spots and interactability. These are logical-space rules. The art direction is fixed 3/4 oblique, but the underlying spatial model need not use true isometric coordinates.
+### 10.4 Deliberately constrained 2D furniture placement (owner-approved direction)
+Home decoration must stay **small in scope**, appropriate to a fixed 2D 3/4 oblique world: move/remove/replace a modest set of furniture and decor in existing rooms, with a simple, touch-friendly preview. No custom walls, freeform house construction, room mesh editing, complicated 3D rotations, physics-based stacking, or a built-in architecture designer.
 
-The final placement rule set (grid, free placement, or hybrid) is **Open**. Favor reuse of common placement logic for furniture, chests, workstations and floor crops wherever the rules genuinely overlap.
+**Provisional implementation:** a simple logical snap/grid or a small number of permitted placement cells/surfaces. Choose the exact UX after a small touch control test. Validity checks may include property access, indoor/outdoor eligibility, floor index, footprint collision, doorway clearance, attachment surface and interaction reach. Keep dimensions in world/logical space; visual oblique sprites are not the placement authority.
+
+Use the **same small placement-validation capability** where it genuinely applies to chests, furniture, and stations, but don't conflate placing a rug with farming soil/plant biology. The underlying floor index and stored placement persist regardless of camera-side cutaway/roof fading.
 
 ### 10.5 Furniture instance versus contained items
 A chest is one placeable object that *provides* a container. Moving that chest must not copy or erase the items inside. If the design forbids moving a full chest, reject the operation with feedback; if allowed, persist the same container identity across moves. A rug or lantern may be purely decorative and need no storage system.
@@ -348,8 +376,17 @@ Dynamic currency exchange rates, global supply chains, persistent vendor economi
 
 ## 12. Connections to skills, companions, Ink and law
 
-### Skills
-Modest specialized progression can change efficiency, permitted techniques or quality when relevant. Do not scatter arbitrary `skill_level >= X` gates across all content; avoid locking physically present items, sources, or locations because a spreadsheet says so.
+### Skills — contextual modifiers, not copied formulas
+Owner confirmed skill expertise should apply **across livelihoods**, e.g. it may ease certain crop-care requirements and also help fishing. The skill system **does not own the action**: Farming owns the crop growth decision; Fishing owns catch/timing; Crafting owns its production rules. Each asks a narrow skill/progression service for **relevant modifiers** within domain-defined limits.
+
+**Candidate contract:** evaluate `effective_rules = domain_base_rules + bounded_modifiers(actor, action_context)` in a deterministic order. Allow only explicit eligible modifier types; do not invent a universal reflection-driven effect language or global stat modifier bus.
+
+Examples (not guaranteed progression bonuses):
+- `Farming`: one fewer required watering event (with sensible minimum), limited soil tolerance, small growth-speed increase.
+- `Fishing`: slightly wider timing window, clearer bite feedback, reduced escape probability or modest bait efficiency.
+- `Cooking/Crafting`: short preparation improvement or reduced chance of a failed outcome where failure is genuinely designed.
+
+**Hard rules survive:** fishing skill cannot conjure fish at the wrong place; farming skill cannot automatically cultivate realm-bound seeds in incompatible ordinary soil. There should be no global stat that turns every action into `+10% success`.
 
 ### Animal companions
 Companions are social characters and travel partners, not automated mining/crafting bots or combat builds. They may interact with the world in authored circumstances, but every such interaction must use the same Inventory/World State rules as the player. No mandatory animal labor economy.
@@ -359,6 +396,69 @@ The story system can acknowledge learning, cooking, a gift, a rent payment or a 
 
 ### Law
 Gathering from another person's property, carrying contraband, or entering a forbidden workshop might be illegal depending on place/context. The law system decides consequences; livelihood systems report actions/results instead of duplicating guard logic.
+
+---
+
+## 12A. Architecture design — focused composition and reusable behavior policies
+
+### 12A.1 Why favor composition?
+**Candidate architectural policy, awaiting owner acceptance:** use shallow inheritance for genuine *is-a* relationships (e.g., a definition is a Resource, an item definition is a kind of authored definition), and **composition** for independent cross-cutting capabilities such as perishability, durability, placeability, and consumability. A future cooked meal, raw fish, herbal bundle and flower bouquet could all expire without inheriting from the same \`CookedFood\` class.
+
+**Do not** model each combination through subclass pyramids such as \`Item → Food → CookedFood → PerishableCookedFood\` or attach a Node to every static item stack.
+
+### 12A.2 Two kinds of composition
+1. **Definition composition:** inspector/data-authored capability policies. Example \`ItemDef\` optionally references a \`PerishabilityPolicy\` with an in-game lifetime, storage/environment rules and expiry outcome. Other independent policies could describe equipment durability or placement constraints.
+2. **Runtime composition:** an Item Instance/stack records only mutable state that policy needs, e.g. \`created_at_world_minutes\`, \`expires_at_world_minutes\` or a \`freshness_state\`. The authoritative ItemStore persists it; no new global SpoilageManager is required at first.
+
+Prefer small typed Godot **Resource** policies for authored reusable data, or plain \`RefCounted\` rule objects for pure calculations if the overall architecture agrees. A \`Resource\` definition may be shared across many instances: **never mutate a shared definition when one meal spoils**.
+
+### 12A.3 Spoilage (future capability, not automatic launch feature)
+A prepared meal might be fresh for eight *in-game hours* (example value). So could a raw fish or a medicinal plant use the same capability with different data. The item store need not run 1 timer/Node/\`_process()\` per item:
+- Record a stable world-clock timestamp or deadline on acquisition/creation, and persistent per-item state where justified.
+- On a meaningful query/use/transfer, or a targeted schedule/reconciliation point, derive whether the item is fresh, stale or spoiled.
+- If a state transition has gameplay consequences, apply it **once** through the owning inventory/item state service. A visual UI update must not perform the mutation.
+- Storage could later alter the time policy (e.g. a cool cupboard prolongs freshness). Define how elapsed time under multiple environments accumulates **before** using such mechanics.
+- Some expiry outcomes may replace one definition with another (fresh fish → spoiled fish); keep the **same authoritative item ledger**, not a duplicate and not an out-of-band object swap.
+
+**Save/load:** store enough time and mutable state to reproduce the same expiry result. Reopening a bag must not trigger multiple spoilage conversions or effectively reset an expiration clock. Spoilage is strictly **game-time-based** for our cozy mobile release, not real-world offline decay.
+
+**Open:** which actual items spoil, whether food spoilage ships in v1, whether players get warnings, which storage modifiers exist and whether spoiled goods are unusable or still have secondary uses.
+
+### 12A.4 Reuse by rules, not one magical effects engine
+The same composition principle can apply to:
+- \`Perishable\` — food, some fish, herbs and flowers.
+- \`Durable\` — a tool or fishing rod *if* gear wear adds interesting choices; don't force all items to have durability.
+- \`Placeable\` — furniture, lamps, containers and maybe crafting stations, with spatial validity handled by Placement.
+- \`Consumable\` — food and appropriate single-use items.
+- \`TemporaryEffect\` — specific potions or artifacts whose magic expires.
+
+These are **capability examples** to guide extensible data design, not an order to implement five behavior frameworks up front. Traits are not a replacement for coherent service ownership: Inventory transfers items; Farming grows crops; Fishing resolves catches; Placement validates furniture.
+
+### 12A.5 Tests required before implementing shared policies
+- Two unrelated items share \`Perishable\` with distinct durations but no inheritance dependency.
+- Many item instances share one immutable definition without sharing runtime spoilage state.
+- Region unload, travel and sleep advance the same canonical clock; no realtime offline decay.
+- Opening inventory repeatedly or saving/reloading cannot duplicate spoilage effects.
+- High Farming/Fishing skill changes permitted thresholds but cannot override disallowed species/biome/location.
+- A canceled/failed short craft never consumes ingredients without the promised result.
+
+### 12A.6 Minimal GDScript sketch (conceptual only)
+
+\`\`\`gdscript
+# Authored data (shared among instances; exact schema TBD)
+class_name PerishabilityPolicy
+extends Resource
+
+@export var lifetime_game_minutes: int = 480
+
+# ItemDefinition references an OPTIONAL PerishabilityPolicy.
+# The save records the individual item's creation/deadline.
+# Querying an item calls a pure calculator with the WorldClock:
+#   calculate_freshness(policy, item_state, world_clock_time)
+# The owning ItemStore commits a transition if one is required.
+\`\`\`
+
+This sketch is not a real code file and does not constitute an approved project structure. Use \`Resource\` for authored policy and serializable data, not as a universal substitute for \`WorldState\` or \`SaveService\`.
 
 ---
 
@@ -426,14 +526,16 @@ This is a **dependency-based roadmap**, not a commitment to implement every feat
 | --- | --- | --- |
 | Is there a general item/container model? | Separate bag/chest/shop ledgers vs one shared model | **One shared model** with explicit location/ownership boundaries |
 | How granular are item instances? | Every fruit unique vs simple stacks + unique stateful goods | Stack ordinary goods; instances when genuinely stateful |
-| Is crafting instant or timed? | Affects job state, reservations, pause/sleep | Simple default; add timed jobs where actually meaningful |
+| Is crafting instant or timed? | **Approved:** short active-play seconds; no idle/mobile waiting | Tune exact seconds and cancellation/interrupt policy |
 | Must recipes be learned? | Experimentation versus knowledge-gated actions | Support discovery, but decide restrictions per feature/content |
-| What does fishing feel like? | Timing minigame vs positioning/patience/skill | Remain open pending mobile feel test |
-| Do crops require watering / can they die? | Important cozy-vs-chore tradeoff | No harsh default; decide with World Clock pacing |
-| Is home placement gridded? | Free versus snap/hybrid, UI, collision and art | Try simple logical-grid or snap placement; not locked |
+| What does fishing feel like? | **Approved:** bait + short timing minigame; location-specific catch pools, exotic aquatic life later | Tune timing, bait consumption and touchscreen feedback |
+| Do crops require watering / can they die? | **Approved:** soil/environment + watering requirement + growth time + bounded skill assistance | Exact water intervals, failure/death pressure and growth pacing open |
+| Is home placement gridded? | **Approved:** deliberately constrained simple 2D furniture placement | Snap/grid/cells choice open pending quick touch test |
 | Furniture in rented spaces? | Lease expiration and property ownership implications | Preserve item identity and plan a safe relocation rule |
 | Vendor economy complexity? | Static quotes vs simulated stock/markets | Simple data-driven stock/quotes to start |
 | Which livelihoods ship in v1? | A catalog is not release scope | Decide after system contracts and player UX tests |
+| Do we use composition or deep inheritance? | **Proposed:** shallow inheritance + optional data-driven capabilities (e.g. future perishability) | Owner review; no generic trait engine yet |
+| How do Skills share behavior? | **Approved direction:** expertise helps multiple activities; **proposed:** each system applies bounded contextual modifiers | Decide concrete bonuses by skill and ensure non-negotiable ecology/biome requirements remain |
 
 ## 17. Acceptance criteria for adopting this GDD
 - Owner agrees to the **domain separation**, not necessarily each proposed mechanic.

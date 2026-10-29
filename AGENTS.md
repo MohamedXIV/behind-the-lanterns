@@ -14,6 +14,9 @@ Read `docs/00-CONSTITUTION.md` and `docs/DECISIONS.md` **before** any developmen
 9. Prefer lightweight, local validations. Do not create GitHub Actions workflows unless truly necessary.
 10. Do not implement a vertical slice as the game's canonical architecture.
 
+## Reusable gameplay capabilities
+Favor **shallow inheritance plus composition** of small reusable policies/capabilities over deep combinatorial subclass trees; this is a proposed design policy, not permission to scaffold a generic ECS/trait framework. Use the **World Clock** for in-world time (including future spoilage); do not create a Node or timer per inventory item. Skill modifiers must be **contextual and bounded** so they do not override impossible environmental conditions or species location constraints. Owner-approved direction: bait/timing fishing with geographic fish variety; extensible crop soil/environment/watering/growth rules; short active-play crafting; constrained 2D decoration. Exact implementation schema remains subject to architecture review.
+
 ## Definition of Done for a system
 - A small explicit contract and acceptance tests exist.
 - Test fixtures include positive, negative, save/load, and cross-system interactions where relevant.
