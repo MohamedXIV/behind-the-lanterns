@@ -1,27 +1,96 @@
 # Behind the Lanterns
+**Working title** · Systems-driven cozy folklore sandbox · Godot · Mobile-first
 
-**Working title** · Cozy folkloric sandbox adventure · **Godot** · Mobile-first (landscape)
+> A little life in a world larger than you.
 
-> A little life in a world much larger than you.
+**Behind the Lanterns** is a 2D open-ended sandbox adventure drawing its warmth, wonder, and storytelling spirit from *One Thousand and One Nights*. Start as a free young stable worker in a lively city. Earn small sums doing ordinary jobs; meet travelers, animals, merchants, and strangers; listen to rumors—or ignore them and follow your own curiosity. Beyond familiar streets, trade routes, and glowing lanterns lie dangerous places, uncanny encounters, and secrets that **already exist whether or not you know about them**.
 
-Behind the Lanterns is a systems-driven 2D sandbox inspired by the atmosphere and storytelling freedom of *One Thousand and One Nights*. A young stable worker earns a modest living, follows rumors, travels among recognizable real-world lands and their legendary unknowns, finds trouble, and sometimes escapes it. There is no chosen-one destiny or mandatory main quest.
+You are not a chosen hero, a king, or an outlaw. You can build a modest life, rent a room, tend land, learn a craft, own a home and eventually a personal boat, discover mysteries, evade trouble, and choose when—or whether—to fight. **There is no mandatory main quest or imposed ending.**
 
-**Current phase:** foundation and design contracts. **No playable game or Godot project has been implemented yet.** This repository currently hosts the first version of the game constitution and design documents.
+## What makes the game distinctive?
 
-## Read first
-1. [Game Constitution](docs/00-CONSTITUTION.md) — authoritative non-negotiable principles.
-2. [Vision GDD](docs/01-GAME-VISION.md) — player fantasy and loops.
-3. [World & Narrative GDD](docs/02-WORLD-NARRATIVE.md) — setting, travel, Ink, knowledge.
-4. [Gameplay Systems GDD](docs/03-GAMEPLAY-SYSTEMS.md) — simulation, adventure, law, progression.
-5. [Art & Technical Direction](docs/04-ART-TECH.md) — production constraints and integration boundaries.
-6. [Production Strategy](docs/05-PRODUCTION.md) — systems-first execution plan and verification.
-7. [Decision Register](docs/DECISIONS.md) — locked, provisional, and open decisions.
+| Pillar | In practice |
+| --- | --- |
+| **Everyday life meets discovery** | Small jobs, trade, crafting, relationships, farming, and household comfort exist alongside voyages and risky exploration. |
+| **A real world of legends** | Recognizable places such as Egypt and the Levant sit beside the places sailors dare not visit; history inspires the world but never dictates a date or strict timeline. |
+| **Facts exist before quests** | An undiscovered passage is always physically present. A rumor may guide you, but no dialogue flag causes the passage to spawn. |
+| **Escape is a valid victory** | Tactical, readable combat against threats; guards/soldiers are **not combat enemies**. Evade, hide, negotiate, or accept consequences such as arrest. |
+| **A sandbox, not a checklist** | No required chosen-one plot or end-of-game boss. You are a resident of a world, not the reason the whole world exists. |
+| **Respectful cozy design** | Mystery and danger coexist with warmth and belonging; no aggressive retention tricks, paid energy, or predatory monetization. |
 
-## What this game is not
-Not a runner, a farming-first clone, a history simulator, a crime game, a required heroic epic, an always-online live service, or a hard-coded vertical slice disguised as the final architecture.
+### A possible day (illustration, not a scripted quest)
+- Help in the stable, deliver a parcel, and spend a little at the market.
+- Overhear an uncertain warning about the old harbor; perhaps take a boat toward a known port.
+- Wander into an unmarked alley or find an uncharted shore **without** first hearing the warning.
+- Avoid a dangerous confrontation, discover a recipe or rare item, and make it home before nightfall.
+- Rest in a rented room, grow something on a small piece of land, or talk with a traveling sailor.
+- If you break a law, evade the guards; if caught, a fine or jail can also create new relationships and stories.
 
-## Working practices
-See [AGENTS.md](AGENTS.md) before generating game code or content. Track implementation in GitHub Issues and changes through focused PRs. Do not invent features because a document names a possible example.
+These are examples of interaction between systems—not mandatory quests or promises of particular launch content.
 
-## Status
-Design draft v0.1 · 29 October 2026. Anything marked **Provisional**, **Open**, or **Deferred** is not approved implementation scope.
+## Status — 29 October 2026
+
+**Foundational design in review, not a playable game.** The repo initially contained a README and Godot gitignore. PR #1 contains the first substantial design drafts. There is no approved engine scaffold, gameplay architecture, Ink integration, build, or export test yet.
+
+### Agreed
+- **Engine:** Godot; **rendering:** detailed 2D high-resolution pixel-art direction, fixed elevated front-readable 3/4 oblique view (not true isometric).
+- **Priority:** native mobile in landscape with touch controls; desktop/Steam later.
+- **Setting:** timeless Arabian fantasy informed by *One Thousand and One Nights*, real named lands and fully fictional wonders, no fixed dynasty or year.
+- **Structure:** free sandbox, optional story arcs, no mandatory main quest.
+- **Narrative:** Ink for dialogue and broader narrative expression; objective World State separated from player Knowledge.
+- **Travel:** public ships and caravans on familiar routes, mainly fast travel plus optional short travel logs; a personal decoratable boat is a later progression goal.
+- **Combat:** accessible, skill-driven dodge/block/roll/weak-spots; retreat and concealment matter. City guards cannot be fought as ordinary enemies.
+- **Production:** systems first, very small replaceable test fixtures, authored meaningful content; **no canonical content-heavy vertical slice**.
+
+### Deliberately not agreed yet
+- GDScript, C#, or limited hybrid; exact Godot/Ink plugin versions and mobile export feasibility.
+- Dependency injection / application lifecycle / global managers / system ownership and interfaces.
+- Save-vs-checkpoint semantics, the rhythm of in-game time and needs, exact mobile input mapping.
+- Starting city's final choice (Alexandria is a candidate) and public-release content bounds.
+
+**Do not interpret draft architecture documents as a final technical decision.**
+
+## Documentation map
+
+| File | Purpose |
+| --- | --- |
+| [Constitution](docs/00-CONSTITUTION.md) | Locked game principles and anti-goals |
+| [Vision GDD](docs/01-GAME-VISION.md) | Player fantasy, everyday/adventure loops, growth |
+| [World & Narrative GDD](docs/02-WORLD-NARRATIVE.md) | Timeless setting, travel, world secrets, Ink, semantic knowledge |
+| [Gameplay GDD](docs/03-GAMEPLAY-SYSTEMS.md) | Time, careers, housing, combat, law, jail, saves |
+| [Art & Technology](docs/04-ART-TECH.md) | Visual constraints and technical production direction |
+| [Production Strategy](docs/05-PRODUCTION.md) | Systems-first work and verification policies |
+| [Architecture RFC](docs/06-ARCHITECTURE-RFC.md) | **Proposed, NOT adopted**: language and DI/autoload/service models |
+| [System Catalog](docs/07-SYSTEM-CATALOG.md) | Candidate systems, responsibilities, state ownership, boundaries |
+| [Decision Register](docs/DECISIONS.md) | Explicit Locked/Provisional/Open/Deferred decisions |
+| [Agent Contract](AGENTS.md) | Instructions for AI coding agents |
+
+## Development principles
+
+1. Design game **capabilities**, not special cases for named towns, NPCs, quests, or scenes.
+2. A system is complete only when a small disposable fixture can verify it with tests.
+3. Keep simulation/state, UI/scene presentation, and content authoring distinct.
+4. Preserve reality independent of rumors; Ink can request validated game actions, never silently invent world objects.
+5. Avoid elaborate generic frameworks, giant game-manager singletons, graph-only code invisible to agents, and one-file monoliths.
+6. Prefer lightweight local validation; no GitHub Actions without a real need.
+7. Capture significant design changes in the Decision Register; GitHub Issues are the implementation backlog.
+
+## Development roadmap (proposed, not a scope promise)
+
+**F0:** approve detailed design and technical architecture; verify Godot mobile and Ink compatibility.
+
+**F1:** build persistent world model, time, region identity and save/rollback contracts.
+
+**F2:** implement actor interaction, semantic knowledge, narrative command gateway and mobile input.
+
+**F3:** connect basic everyday systems: schedules, ownership, inventory, work, money and relationships.
+
+**F4:** add exploration and consequences: region travel, danger, tactical combat, law/pursuit, arrest and prison.
+
+**F5:** expand hand-authored towns, journeys, encounters and production-quality assets after contracts survive testing.
+
+### Repository
+
+Primary source of truth: [MohamedXIV/behind-the-lanterns](https://github.com/MohamedXIV/behind-the-lanterns). The public title **Behind the Lanterns** remains a working title subject to eventual trademark/store clearance.
+
+Design status is not code status: do not mistake these documents for implemented features.
