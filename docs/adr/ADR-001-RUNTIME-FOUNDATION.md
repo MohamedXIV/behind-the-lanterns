@@ -36,4 +36,9 @@ Behind the Lanterns targets native mobile, Web and eventually desktop/Steam. Its
 - Building a content-heavy village as canonical architecture.
 
 ## Supersession
+
+Implementation clarification under review: [ADR-002](ADR-002-TRANSACTIONAL-FOUNDATION.md)
+specifies candidate-state atomicity, FIFO ties, identity and native recovery. It
+does not treat PR #10 as canonical or alter the locked gameplay principles.
 This accepted ADR decides the runtime foundation where it differs from provisional options in RFC-001/002. Those RFCs remain as explanatory design and open-detail references. The Game Constitution still governs game design; ADR-001 does not decide unapproved content or feature scope.
+
