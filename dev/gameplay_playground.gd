@@ -325,6 +325,11 @@ func _use_target(id: String) -> void:
 			return
 	_select_target(id)
 	_tabs.current_tab = 1 if id in _model.crafting.station_ids() or not _model.npcs.projection(id, _model.session.now()).is_empty() else 0
+	var observation := _model.narrative.observation_text(id) if _model.narrative != null else ""
+	if not observation.is_empty():
+		_show_message("You notice: " + observation)
+		_tabs.current_tab = 2
+		return
 	_show_message("Using " + str(_data.presentation.labels.get(id, id)) + ". Choose an action; goods and payments require confirmation.")
 
 func _region_label() -> String:

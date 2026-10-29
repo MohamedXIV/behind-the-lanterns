@@ -118,9 +118,9 @@ func enter(intent: String, actor_id: String, portal_id: String) -> OperationResu
 func actor_region(actor_id: String) -> String:
 	return session.snapshot().entities[actor_id].region_id
 
-func talk(intent: String, actor_id: String, npc_id: String, choice: Variant = -1, expected_turns: int = 0) -> OperationResult:
+func talk(intent: String, actor_id: String, npc_id: String, choice: Variant = -1, expected_turns: int = 0, expected_cursor: String = "") -> OperationResult:
 	if narrative == null: return OperationResult.failure("no_narrative")
-	return session.transact(intent, func(tx: WorldTransaction) -> String: return narrative.talk(tx, actor_id, npc_id, choice, expected_turns))
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return narrative.talk(tx, actor_id, npc_id, choice, expected_turns, expected_cursor))
 
 func inspect_object(intent: String, actor_id: String, target_id: String) -> OperationResult:
 	if narrative == null: return OperationResult.failure("no_narrative")

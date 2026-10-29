@@ -55,6 +55,8 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 
 | D-042 | Provisional | #5/#14: real inkgd drives contextual conversation; immutable world facts and existing semantic knowledge remain authoritative. Whitelisted story commands can add hearsay or request existing work. Bounded choice/context replay persists conversation continuation and verifies frames, with no raw VM save injection or general quest framework. |
 
+| D-043 | Provisional | #5/#14: reporting requires inspected evidence and records whom the player told; NPC dialogue can request existing atomic delivery. Reporting does not rewrite static facts or introduce a gossip/quest simulation. Conversation restart refreshes context and exact cursor checks reject stale UI choices. |
+
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.
 2. When a conflict arises, update this register and the affected GDD together.

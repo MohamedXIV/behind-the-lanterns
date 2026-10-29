@@ -1,12 +1,13 @@
 // Disposable folklore thread, not a canonical quest.
+VAR reported_basin = false
 VAR found_passage = false
 VAR found_dry_basin = false
 VAR has_delivery = false
 VAR finished_delivery = false
 -> greeting
 === greeting ===
-{found_dry_basin:
-The merchant turns a cracked cup in his hands. "So the singing spring has fallen silent? I should stop promising thirsty travelers a drink."
+{reported_basin:
+The merchant turns a cracked cup in his hands. "You told me the spring has fallen silent. I should stop promising thirsty travelers a drink."
 - else:
 The merchant shades his stall with a woven cloth. "A little honest work leaves the evening free for wonders."
 }
@@ -17,7 +18,9 @@ The merchant shades his stall with a woven cloth. "A little honest work leaves t
     "They say a narrow passage beyond the workshop leads to a spring that sings after sunset. I heard it from a boatman; I have never tasted its water."
     }
     # command:passage_rumor
+    {not reported_basin:
     # command:water_rumor
+    }
     -> farewell
 + {not has_delivery && not finished_delivery} [Ask for a small delivery.]
     "The courier needs provisions. Bring the agreed goods before the deadline; the payment is set aside."
@@ -31,6 +34,10 @@ The merchant shades his stall with a woven cloth. "A little honest work leaves t
     -> farewell
 + [Leave the merchant to his work.]
     -> END
++ {found_dry_basin && not reported_basin} [Report the dry basin you inspected.]
+    "Dust in the channel, you say? Then I owe that boatman a question. I will tell travelers to carry their own water. Thank you for checking instead of repeating me."
+    # command:report_basin
+    -> farewell
 === farewell ===
 + [Thank him and leave.]
     -> END
