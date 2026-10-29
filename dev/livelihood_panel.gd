@@ -146,7 +146,7 @@ func _can_work(job: Dictionary) -> bool:
 	if snapshot.entities[_actor].region_id != snapshot.entities[job.station_id].region_id: return false
 	var at := _model.position_of(job.station_id)
 	var visual: Vector2 = _visual_position.call()
-	return at.distance_to(visual) <= _model.interactions.reach() and at.distance_to(_model.position_of(_actor)) <= _model.interactions.reach()
+	return _model.interactions.geometry.clear_segment(visual, at) and at.distance_to(visual) <= _model.interactions.reach() and at.distance_to(_model.position_of(_actor)) <= _model.interactions.reach()
 
 func _process(delta: float) -> void:
 	if _model == null or _model.session.is_closed() or _suspended: return

@@ -4,6 +4,9 @@ extends Control
 
 signal target_selected(entity_id: String)
 signal stopped(point: Vector2)
+signal use_requested(entity_id: String)
+signal feedback(text: String)
+var _route := PackedVector2Array()
 
 const PADDING: float = 28.0
 const PICK_RADIUS: float = 28.0
@@ -30,6 +33,7 @@ func configure(model: GameplayModel, actor: String, labels: Dictionary, speed: f
 func sync_position() -> void:
 	_visual = _model.position_of(_actor)
 	_goal = _visual
+	_route.clear()
 	_pointer_walking = false
 	_keyboard_walking = false
 	queue_redraw()
@@ -39,6 +43,7 @@ func visual_position() -> Vector2:
 
 func halt() -> void:
 	_goal = _visual
+	_route.clear()
 	_pointer_walking = false
 	_keyboard_walking = false
 
@@ -73,7 +78,9 @@ func _tap(point: Vector2) -> void:
 	if not closest.is_empty():
 		selected_target = closest
 		target_selected.emit(closest)
-	_pointer_walking = true
+	_route = _model.interactions.geometry.route(_visual, _goal)
+	_pointer_walking = not _route.is_empty()
+	if not _pointer_walking: feedback.emit("No clear route there. Choose open ground.")
 	queue_redraw()
 
 func _process(delta: float) -> void:
@@ -84,8 +91,12 @@ func _process(delta: float) -> void:
 		direction.x += float(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A))
 		direction.y += float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W))
 	if not direction.is_zero_approx():
-		_visual = (_visual + direction.normalized() * _speed * delta).clamp(Vector2.ZERO, _model.interactions.bounds())
+		var step := direction.normalized() * _speed * minf(delta, 0.1)
+		for axis in [Vector2(step.x, 0), Vector2(0, step.y)]:
+			var next: Vector2 = _visual + axis
+			if _model.interactions.geometry.walkable(next) and _model.interactions.geometry.clear_segment(_visual, next, _model.interactions.geometry.radius): _visual = next
 		_goal = _visual
+		_route.clear()
 		_pointer_walking = false
 		_keyboard_walking = true
 		queue_redraw()
@@ -93,9 +104,11 @@ func _process(delta: float) -> void:
 		_keyboard_walking = false
 		stopped.emit(_visual)
 	elif _pointer_walking:
-		_visual = _visual.move_toward(_goal, _speed * delta)
+		var next: Vector2 = _route[0]
+		_visual = _visual.move_toward(next, _speed * minf(delta, 0.1))
+		if _visual.is_equal_approx(next): _route.remove_at(0)
 		queue_redraw()
-		if _visual.is_equal_approx(_goal):
+		if _route.is_empty():
 			_pointer_walking = false
 			stopped.emit(_visual)
 
@@ -107,6 +120,12 @@ func _draw() -> void:
 		draw_line(world_to_local(Vector2(x, 0)), world_to_local(Vector2(x, extent.y)), Color("263b3b"))
 	for y in range(0, int(extent.y) + 1, GRID_STEP):
 		draw_line(world_to_local(Vector2(0, y)), world_to_local(Vector2(extent.x, y)), Color("263b3b"))
+	for block in _model.interactions.geometry.blocks:
+		draw_rect(Rect2(world_to_local(block.position), block.size * _scale_factor()), Color("536451"))
+	var path_start := world_to_local(_visual)
+	for point in _route:
+		draw_line(path_start, world_to_local(point), Color("e2c58d"), 2)
+		path_start = world_to_local(point)
 	var snapshot := _model.session.snapshot()
 	var font := get_theme_default_font()
 	for id in _model.interactions.target_ids():
@@ -122,6 +141,9 @@ func _draw() -> void:
 		draw_string(font, at + Vector2(-80, -28), _labels.get(id, id), HORIZONTAL_ALIGNMENT_CENTER, 160, 16, Color("e8e4d5"))
 		var detail: String = npc.activity if not npc.is_empty() else "Preparation" if id in _model.crafting.station_ids() else "%d goods" % _quantity(snapshot, id)
 		draw_string(font, at + Vector2(-80, 42), detail, HORIZONTAL_ALIGNMENT_CENTER, 160, 14, Color("b4c7c3"))
+	var nearby := nearby_target()
+	if not nearby.is_empty():
+		draw_string(font, Vector2(16, size.y - 16), "E / Use: " + str(_labels.get(nearby, nearby)), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("ffe3a1"))
 	var actor_at := world_to_local(_visual)
 	draw_arc(actor_at, _model.interactions.reach() * _scale_factor(), 0, TAU, 48, Color(0.55, 0.85, 0.85, 0.22), 1)
 	draw_circle(actor_at, 10, Color("8bd0d1"))
@@ -131,3 +153,29 @@ func _quantity(snapshot: Dictionary, holder: String) -> int:
 	var amount: int = 0
 	for value in _model.inventory.contents(snapshot, holder).values(): amount += int(value)
 	return amount
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E:
+		use_nearby()
+		get_viewport().set_input_as_handled()
+
+func nearby_target() -> String:
+	var best := ""
+	var distance := _model.interactions.reach()
+	var snapshot := _model.session.snapshot()
+	for id in _model.interactions.target_ids():
+		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id: continue
+		var point := _model.position_of(id)
+		var separation := _visual.distance_to(point)
+		if separation <= distance and _model.interactions.geometry.clear_segment(_visual, point):
+			best = id
+			distance = separation
+	return best
+
+func use_nearby() -> void:
+	var id := nearby_target()
+	if id.is_empty(): feedback.emit("Move closer to an object with a clear line of reach.")
+	else:
+		selected_target = id
+		target_selected.emit(id)
+		use_requested.emit(id)

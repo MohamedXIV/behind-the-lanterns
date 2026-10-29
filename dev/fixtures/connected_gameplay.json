@@ -183,6 +183,17 @@
         "x": 220,
         "y": 320
       }
+    },
+    "geometry": {
+      "radius": 10,
+      "obstacles": [
+        {
+          "x": 330,
+          "y": 180,
+          "width": 80,
+          "height": 100
+        }
+      ]
     }
   },
   "presentation": {

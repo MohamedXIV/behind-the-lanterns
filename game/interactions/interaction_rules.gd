@@ -3,6 +3,7 @@ extends SessionDomain
 ## Persistent actor positions and access checks; active movement is presentation.
 
 const DOMAIN: String = "interactions"
+var geometry: WorldGeometry
 var _config: Dictionary
 var _inventory: InventoryRules
 var _commerce: CommerceRules
@@ -10,13 +11,15 @@ var _npcs: NpcScheduleRules
 
 static func create(config: Dictionary, inventory: InventoryRules, commerce: CommerceRules, npcs: NpcScheduleRules = null) -> InteractionRules:
 	if inventory == null or commerce == null or not WorldData.valid(config): return null
-	if not WorldData.keys(config, ["actors", "positions", "bounds", "reach"]): return null
+	if not WorldData.keys(config, ["actors", "positions", "bounds", "reach"], ["geometry"]): return null
 	if not config.actors is Array or config.actors.is_empty() or not config.positions is Dictionary: return null
 	if not WorldData.keys(config.bounds, ["width", "height"]): return null
 	if not WorldData.integer(config.bounds.width, 1) or not WorldData.integer(config.bounds.height, 1): return null
 	if not _number(config.reach) or config.reach <= 0: return null
 	var rules := InteractionRules.new()
 	rules._config = config.duplicate(true)
+	rules.geometry = WorldGeometry.create(config.get("geometry", {"radius": 0, "obstacles": []}), rules.bounds())
+	if rules.geometry == null: return null
 	rules._inventory = inventory
 	rules._commerce = commerce
 	rules._npcs = npcs
@@ -47,7 +50,7 @@ func validate(state: Dictionary, snapshot: Dictionary) -> String:
 	for id in _config.positions:
 		if not snapshot.entities.has(id): return "position_entity_reference"
 	for actor in _config.actors:
-		if not state.positions.has(actor) or not _valid_point(state.positions[actor]): return "invalid_actor_position"
+		if not state.positions.has(actor) or not _valid_point(state.positions[actor]) or not geometry.walkable(Vector2(state.positions[actor].x, state.positions[actor].y)): return "invalid_actor_position"
 		if not commerce_state.wallets.has(actor): return "actor_wallet_reference"
 	return ""
 
@@ -81,11 +84,14 @@ func reach_error(tx: WorldTransaction, actor_id: String, target_id: String) -> S
 	if tx.entity(actor_id).region_id != tx.entity(target_id).region_id: return "different_region"
 	var snapshot := tx.snapshot()
 	if position_of(snapshot, actor_id).distance_to(position_of(snapshot, target_id)) > reach(): return "out_of_reach"
+	if not geometry.clear_segment(position_of(snapshot, actor_id), position_of(snapshot, target_id)): return "interaction_obstructed"
 	return ""
 
 func move_actor(tx: WorldTransaction, actor_id: String, x: Variant, y: Variant) -> String:
 	if not actor_id in _config.actors: return "unknown_actor"
 	if not _valid_point({"x": x, "y": y}): return "invalid_position"
+	if not geometry.walkable(Vector2(x, y)): return "position_blocked"
+	if geometry.route(position_of(tx.snapshot(), actor_id), Vector2(x, y)).is_empty() and not position_of(tx.snapshot(), actor_id).is_equal_approx(Vector2(x, y)): return "position_unreachable"
 	var state := tx.read_domain(DOMAIN)
 	state.positions[actor_id] = WorldData.normalize({"x": x, "y": y})
 	return "" if tx.write_domain(DOMAIN, state) else "position_write_failed"

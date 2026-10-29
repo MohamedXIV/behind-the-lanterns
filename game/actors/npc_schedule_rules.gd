@@ -10,6 +10,8 @@ static func create(config: Dictionary, world: Dictionary, interaction_config: Di
 	var bounds: Variant = interaction_config.get("bounds")
 	if not WorldData.keys(bounds, ["width", "height"]): return null
 	if not WorldData.integer(bounds.width, 1) or not WorldData.integer(bounds.height, 1): return null
+	var geometry := WorldGeometry.create(interaction_config.get("geometry", {"radius": 0, "obstacles": []}), Vector2(bounds.width, bounds.height))
+	if geometry == null: return null
 	for id in config:
 		var routine: Variant = config[id]
 		if not WorldData.id(id) or not world.entities.has(id) or id in interaction_config.actors: return null
@@ -21,6 +23,7 @@ static func create(config: Dictionary, world: Dictionary, interaction_config: Di
 			if not WorldData.integer(slot.start, 0, routine.period_minutes - 1) or slot.start <= previous: return null
 			if previous == -1 and slot.start != 0: return null
 			if not _coordinate(slot.x, bounds.width) or not _coordinate(slot.y, bounds.height): return null
+			if not geometry.walkable(Vector2(slot.x, slot.y)): return null
 			if not slot.available is bool or not slot.activity is String: return null
 			previous = slot.start
 	var rules := NpcScheduleRules.new()
