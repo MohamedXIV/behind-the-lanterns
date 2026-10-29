@@ -1,0 +1,56 @@
+{
+  "world": {
+    "regions": ["region.playground", "region.remote"],
+    "definitions": ["actor.resident", "object.storage", "object.supplies", "actor.merchant", "item.dates", "item.grain", "item.vessel"],
+    "entities": {
+      "a:player": {"definition_id": "actor.resident", "region_id": "region.playground"},
+      "a:supplies": {"definition_id": "object.supplies", "region_id": "region.playground"},
+      "a:chest": {"definition_id": "object.storage", "region_id": "region.playground"},
+      "a:private": {"definition_id": "object.storage", "region_id": "region.playground"},
+      "a:merchant": {"definition_id": "actor.merchant", "region_id": "region.playground"}
+    },
+    "facts": {},
+    "claims": []
+  },
+  "inventory": {
+    "items": {
+      "item.dates": {"label": "Dates", "stack_limit": 5},
+      "item.grain": {"label": "Grain", "stack_limit": 10},
+      "item.vessel": {"label": "Clay vessel", "stack_limit": 1}
+    },
+    "containers": {
+      "a:player": {"slots": 3, "owner_id": "a:player", "access": "owner", "items": {}},
+      "a:supplies": {"slots": 20, "owner_id": "", "access": "public", "items": {"item.dates": 12, "item.grain": 8, "item.vessel": 1}},
+      "a:chest": {"slots": 6, "owner_id": "a:player", "access": "owner", "items": {}},
+      "a:private": {"slots": 3, "owner_id": "a:merchant", "access": "owner", "items": {"item.dates": 2}},
+      "a:merchant": {"slots": 20, "owner_id": "a:merchant", "access": "trade", "items": {"item.dates": 6, "item.grain": 10, "item.vessel": 2}}
+    }
+  },
+  "economy": {
+    "wallets": {"a:player": 10, "a:merchant": 80},
+    "shops": {
+      "a:merchant": {"prices": {
+        "item.dates": {"buy_price": 3, "sell_price": 2},
+        "item.grain": {"buy_price": 2, "sell_price": 1},
+        "item.vessel": {"buy_price": 8, "sell_price": 5}
+      }}
+    }
+  },
+  "interactions": {
+    "actors": ["a:player"],
+    "bounds": {"width": 760, "height": 420},
+    "reach": 85,
+    "positions": {
+      "a:player": {"x": 100, "y": 160},
+      "a:supplies": {"x": 160, "y": 160},
+      "a:chest": {"x": 360, "y": 160},
+      "a:private": {"x": 360, "y": 310},
+      "a:merchant": {"x": 620, "y": 160}
+    }
+  },
+  "presentation": {
+    "player_id": "a:player",
+    "walk_speed": 210,
+    "labels": {"a:player": "You", "a:supplies": "Shared supplies", "a:chest": "Your chest", "a:private": "Private chest", "a:merchant": "Merchant"}
+  }
+}

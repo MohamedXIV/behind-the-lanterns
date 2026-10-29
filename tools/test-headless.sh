@@ -29,6 +29,7 @@ run_checked() {
 echo "Engine: $engine_version"
 run_checked import --editor --import --quit
 run_checked contracts --script res://tests/run_all.gd
+run_checked gameplay-ui --fixed-fps 60 --script res://tests/gameplay_ui.gd
 restart_directory="user://foundation-restart-$$"
 run_checked restart-write --script res://tests/restart.gd -- write "$restart_directory"
 run_checked restart-read --script res://tests/restart.gd -- read "$restart_directory"
