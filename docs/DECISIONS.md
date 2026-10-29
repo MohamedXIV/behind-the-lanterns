@@ -26,12 +26,12 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 | D-019 | Provisional | Alexandria is candidate first city; exact starting city/name not finally approved. |
 | D-020 | Provisional | Systems use explicit state/knowledge/Ink command boundaries and deterministic seeds when appropriate. |
 | D-021 | Provisional | Blender geometry-authoritative render pipeline for 2D buildings and character portraits for important dialogue. |
-| D-022 | Open | Final Godot version/language ADR, mobile export, BTL-specific inkgd/Ink binding interoperability; GDScript is preferred and Web target confirmed (see D-026–028). |
+| D-022 | Open | BTL-specific Ink binding/runtime validation and native Android/iOS export; foundation language and engine version accepted in ADR-001 (D-037). |
 | D-023 | Open | Specific day length, needs penalties, checkpoints, autosave, prison duration/fines, control mapping. |
 | D-024 | Open | What exact features are in first public mobile release and minimum shippable content. |
 | D-025 | Deferred | Broad character appearance editor, full 3D world, cloth/hair physics, complex vessel navigation and large generative city tooling. |
 | D-026 | Locked | **Web is a target platform** as well as native mobile and later desktop/Steam. |
-| D-027 | Provisional | **Typed GDScript-first** is owner's preferred approach; final lifetime/DI and language ADR remains open. C++/Rust extension only if measured need and platform support are confirmed. |
+| D-027 | Locked | Typed GDScript-first is the production default; C++/Rust GDExtension only for measured bottlenecks with Web/mobile portability verified. See ADR-001. |
 | D-028 | Provisional (reference evidence; not a BTL feature decision) | **Kiosk on the Nile** has working Godot 4.7.2 + GDScript + Godot-4 inkgd + Ink JSON workflow and Web previews; BTL-specific integration/mobile export are not verified. |
 | D-029 | Open | Approve the shared Inventory/Crafting/Cooking/Farming/Fishing/Housing/Trade boundaries in GDD 08; gameplay directions in D-030–033 are confirmed, but precise schemas, tuning and launch scope remain open. |
 | D-030 | Locked | Fishing begins with bait choice and a small timing minigame, with fish availability strongly differentiated by location; start with limited species, expand later into exotic/fantasy fish and sea life. |
@@ -40,7 +40,8 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 | D-033 | Locked | Home furniture/decor placement will be deliberately simple and constrained for fixed 2D; avoid complex construction/build-mode scope. |
 | D-034 | Provisional | Prefer shallow inheritance and focused composition of reusable item capabilities (e.g. future spoilage, durability, placement, consumability), plus bounded action-specific skill modifiers; no universal trait/effects engine is approved. |
 | D-035 | Open | Spoilage feature launch inclusion, storage effects and item expiry policies; farm watering cadence/failure, fish timing details, furniture snap model, and craft interruption rules. |
-| D-036 | Provisional | Owner proposed selective offscreen simulation: schedule consequential/player-relevant events independently of loaded regions, lazily reconcile lower-consequence world state using actual elapsed time when needed, and leave static/unimportant state unticked. See RFC 002; architecture implementation still under review. |
+| D-036 | Locked | Adopt selective offscreen simulation as the **foundational execution policy**: active loaded-scene behavior, durable scheduled consequential events, lazy time-anchored state reconciliation, and unticked static world facts. Fine-grained policy, clock rate and event schemas remain tunable. See ADR-001/RFC-002. |
+| D-037 | Locked | ADR-001: Godot Standard 4.7.2, typed GDScript, one composition root and session-scoped service state, minimal Autoloads, manual wiring, WorldClock + SimulationCoordinator + due-event Scheduler, state-owning domains and scene-local presentation; no mandatory DI framework or all-global managers. |
 
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.

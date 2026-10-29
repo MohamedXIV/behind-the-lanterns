@@ -43,14 +43,14 @@ These are examples of interaction between systems—not mandatory quests or prom
 - **Production:** systems first, very small replaceable test fixtures, authored meaningful content; **no canonical content-heavy vertical slice**.
 
 ### Deliberately not agreed yet
-- Final language and architecture decision (GDScript-first is currently favored), exact Behind the Lanterns Godot/Ink integration, mobile export verification.
+- Selected foundation: **Godot Standard 4.7.2 + typed GDScript**, approved in ADR-001. BTL-specific inkgd integration and Android/iOS export remain unverified.
 - Dependency injection / application lifecycle / global managers / system ownership and interfaces.
 - Save-vs-checkpoint semantics, the rhythm of in-game time and needs, exact mobile input mapping.
 - Starting city's final choice (Alexandria is a candidate) and public-release content bounds.
 
 **Existing project evidence:** [Kiosk on the Nile](https://github.com/MohamedXIV/kiosk-on-the-nile) already runs Godot Standard 4.7.2 + GDScript + vendored Godot-4 inkgd with Web previews; Behind the Lanterns may reuse lessons, but mobile export and integration here remain unverified.
 
-**Do not interpret draft architecture documents as a final technical decision.**
+**ADR-001 has been accepted for the narrow runtime foundation.** Other RFCs, exact mechanics and production release scope remain open; do not confuse the accepted architecture with completed code or proven exports.
 
 ## Documentation map
 
@@ -64,7 +64,8 @@ These are examples of interaction between systems—not mandatory quests or prom
 | [Art & Technology](docs/04-ART-TECH.md) | Visual constraints and technical production direction |
 | [Production Strategy](docs/05-PRODUCTION.md) | Systems-first work and verification policies |
 | [Architecture RFC](docs/06-ARCHITECTURE-RFC.md) | **Proposed, NOT adopted**: language and DI/autoload/service models |
-| [Selective World Simulation RFC](docs/09-WORLD-SIMULATION-RFC.md) | Scheduled consequential events, lazy time-anchored reconciliation, static facts and time advancement (**proposal**) |
+| [Selective World Simulation RFC](docs/09-WORLD-SIMULATION-RFC.md) | Design rationale and unresolved tuning questions for scheduled/lazy world updates |
+| [ADR-001 Runtime Foundation](docs/adr/ADR-001-RUNTIME-FOUNDATION.md) | **Accepted foundation**: GDScript, session scope, time, scheduling, storage boundaries |
 | [System Catalog](docs/07-SYSTEM-CATALOG.md) | Candidate systems, responsibilities, state ownership, boundaries |
 | [Decision Register](docs/DECISIONS.md) | Explicit Locked/Provisional/Open/Deferred decisions |
 | [Agent Contract](AGENTS.md) | Instructions for AI coding agents |
