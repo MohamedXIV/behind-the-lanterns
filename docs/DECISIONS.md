@@ -26,10 +26,14 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 | D-019 | Provisional | Alexandria is candidate first city; exact starting city/name not finally approved. |
 | D-020 | Provisional | Systems use explicit state/knowledge/Ink command boundaries and deterministic seeds when appropriate. |
 | D-021 | Provisional | Blender geometry-authoritative render pipeline for 2D buildings and character portraits for important dialogue. |
-| D-022 | Open | Godot version, scripting language, mobile export, Ink binding interoperability. |
+| D-022 | Open | Final Godot version/language ADR, mobile export, BTL-specific inkgd/Ink binding interoperability; GDScript is preferred and Web target confirmed (see D-026–028). |
 | D-023 | Open | Specific day length, needs penalties, checkpoints, autosave, prison duration/fines, control mapping. |
 | D-024 | Open | What exact features are in first public mobile release and minimum shippable content. |
 | D-025 | Deferred | Broad character appearance editor, full 3D world, cloth/hair physics, complex vessel navigation and large generative city tooling. |
+| D-026 | Locked | **Web is a target platform** as well as native mobile and later desktop/Steam. |
+| D-027 | Provisional | **Typed GDScript-first** is owner's preferred approach; final lifetime/DI and language ADR remains open. C++/Rust extension only if measured need and platform support are confirmed. |
+| D-028 | Verified reference (not a BTL feature decision) | **Kiosk on the Nile** has working Godot 4.7.2 + GDScript + Godot-4 inkgd + Ink JSON workflow and Web previews; BTL-specific integration/mobile export are not verified. |
+| D-029 | Open | Adopt, revise or reject the proposed Inventory/Crafting/Cooking/Farming/Fishing/Housing/Trade domain contracts in GDD 08; exact fishing interactions, farming care, placement and launch scope remain undecided. |
 
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.

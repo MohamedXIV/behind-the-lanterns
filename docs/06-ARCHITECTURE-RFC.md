@@ -13,6 +13,8 @@ We agreed on Godot, mobile-first, fixed-angle 2D oblique art, authored Ink narra
 - The Ink runtime plugin, including native mobile/export implications.
 - How world simulation advances unloaded regions.
 
+**Owner update (2026-10-29):** Web is a target platform alongside native mobile and desktop/Steam, and **GDScript is the owner's preference**; it is not yet an accepted architecture ADR. The related Godot game [Kiosk on the Nile](https://github.com/MohamedXIV/kiosk-on-the-nile) has already validated a Godot Standard 4.7.2 + GDScript + vendored Godot-4 inkgd + inklecate 1.2.1 integration, including Web preview. Do not repeat that generic compatibility proof. **Behind the Lanterns** still needs its own specific narrative command tests and real mobile export validation.
+
 **Do not scaffold production code from this RFC until these are decided.**
 
 ## 2. Platform constraints (verified sources, not our own tests)
@@ -36,7 +38,7 @@ Do not interpret repository support claims as validated export compatibility on 
 | **B. C#-first (.NET)** | Strong types, interfaces, unit tests, reusable domain libraries, familiar tooling, original Ink runtime | Experimental Android/iOS support; no Godot 4 Web export; .NET build/export complexity | Native mobile + Steam dominate and export probe passes |
 | **C. Explicit narrow hybrid** | Use C# for pure simulation/Ink and GDScript for thin node/UI scripts | Boundary duplication, serialization/calls across languages, agent confusion, still inherits C# export limits | A concrete tested benefit outweighs cost |
 
-**Provisional recommendation:** **B, C#-first**, only after a successful **actual Android export + Ink save/load probe**. If export compatibility, footprint, or stability proves unacceptable, reconsider **A** rather than adopting a broad split-language architecture. No user decision is assumed here.
+**Updated provisional recommendation:** **A, typed GDScript-first** because Web is a target and the owner prefers GDScript; there is already an applied inkgd integration to learn from in Kiosk on the Nile. This is **not yet an approved ADR**. C++ or Rust GDExtension should be considered only for measured bottlenecks and cross-platform build viability, not adopted globally.
 
 ## 4. DI vs global managers vs Godot Autoloads
 
@@ -125,9 +127,9 @@ A facade is allowed to aggregate a feature's public operations (e.g. `ITravelSer
 - No global service may assume `Alexandria`, `StableBoy`, or `Quest001` identifiers.
 
 ## 9. Decision gates before the first production scene
-1. Decide intended release order: Android, iOS, desktop/Steam, any Web target.
-2. Run a minimal Godot 4.7.2 **.NET Android build** and Ink runtime test, including saves, with reproducible evidence.
-3. Compare with a tiny GDScript + inkgd path if the .NET build/probe fails or Web is vital.
+1. Confirm the exact release order across Android, iOS, Web and Steam; **Web is already a target**.
+2. Use [Kiosk on the Nile](https://github.com/MohamedXIV/kiosk-on-the-nile) as concrete evidence and reference for Godot 4.7.2 + GDScript + inkgd + Web; inspect its pinned dependency and local patch rather than redoing a generic proof.
+3. Validate the selected GDScript/Ink path for **Behind the Lanterns** specifically, especially semantic command gateway/save semantics and a real Android build/device; assess iOS constraints separately.
 4. Decide language, Ink integration, lifetime root and manual DI boundaries.
 5. Accept a **minimal canonical system inventory**; defer detailed submodules.
 6. Turn decisions into an accepted ADR and update `docs/DECISIONS.md` and AGENTS.md.
@@ -136,7 +138,7 @@ A facade is allowed to aggregate a feature's public operations (e.g. `ITravelSer
 ## 10. Explicitly unresolved
 - Exact lifecycle implementation, save/checkpoint contract and minimum pure-domain boundary.
 - Whether a `WorldSession` or `GameSession` owns simulation per run.
-- Whether GDScript-compatible narratives require a C# runtime dependency.
+- Whether to reuse/adapt Kiosk's GDScript-only inkgd integration as-is or wrap it with a narrower BTL narrative service; Web is required, so avoid introducing a hidden .NET export dependency.
 - Which systems ship in first public release versus subsequent updates.
 - Whether any UI systems should become separate Autoloads.
 - Detailed editor tooling and on-disk content schema.

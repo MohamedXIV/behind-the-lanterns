@@ -34,7 +34,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 
 ### Agreed
 - **Engine:** Godot; **rendering:** detailed 2D high-resolution pixel-art direction, fixed elevated front-readable 3/4 oblique view (not true isometric).
-- **Priority:** native mobile in landscape with touch controls; desktop/Steam later.
+- **Targets:** native mobile in landscape with touch controls **and Web**; desktop/Steam later. **Typed GDScript-first is preferred but not yet ratified**.
 - **Setting:** timeless Arabian fantasy informed by *One Thousand and One Nights*, real named lands and fully fictional wonders, no fixed dynasty or year.
 - **Structure:** free sandbox, optional story arcs, no mandatory main quest.
 - **Narrative:** Ink for dialogue and broader narrative expression; objective World State separated from player Knowledge.
@@ -43,10 +43,12 @@ These are examples of interaction between systems—not mandatory quests or prom
 - **Production:** systems first, very small replaceable test fixtures, authored meaningful content; **no canonical content-heavy vertical slice**.
 
 ### Deliberately not agreed yet
-- GDScript, C#, or limited hybrid; exact Godot/Ink plugin versions and mobile export feasibility.
+- Final language and architecture decision (GDScript-first is currently favored), exact Behind the Lanterns Godot/Ink integration, mobile export verification.
 - Dependency injection / application lifecycle / global managers / system ownership and interfaces.
 - Save-vs-checkpoint semantics, the rhythm of in-game time and needs, exact mobile input mapping.
 - Starting city's final choice (Alexandria is a candidate) and public-release content bounds.
+
+**Existing project evidence:** [Kiosk on the Nile](https://github.com/MohamedXIV/kiosk-on-the-nile) already runs Godot Standard 4.7.2 + GDScript + vendored Godot-4 inkgd with Web previews; Behind the Lanterns may reuse lessons, but mobile export and integration here remain unverified.
 
 **Do not interpret draft architecture documents as a final technical decision.**
 
@@ -58,6 +60,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 | [Vision GDD](docs/01-GAME-VISION.md) | Player fantasy, everyday/adventure loops, growth |
 | [World & Narrative GDD](docs/02-WORLD-NARRATIVE.md) | Timeless setting, travel, world secrets, Ink, semantic knowledge |
 | [Gameplay GDD](docs/03-GAMEPLAY-SYSTEMS.md) | Time, careers, housing, combat, law, jail, saves |
+| [Life & Livelihood GDD](docs/08-LIFE-LIVELIHOOD-GDD.md) | **Detailed proposal**: items/inventory, crafting/cooking, farming, fishing, housing/placement, vendors/jobs, state, invariants and test contracts |
 | [Art & Technology](docs/04-ART-TECH.md) | Visual constraints and technical production direction |
 | [Production Strategy](docs/05-PRODUCTION.md) | Systems-first work and verification policies |
 | [Architecture RFC](docs/06-ARCHITECTURE-RFC.md) | **Proposed, NOT adopted**: language and DI/autoload/service models |

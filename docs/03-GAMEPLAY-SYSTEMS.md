@@ -15,6 +15,9 @@ Early low-paid work can include stable chores, cleaning, carrying parcels, couri
 
 Small practical skills can influence combat, crafting, speech and livelihood such as farming/fishing. Learn new recipes, crops, methods and opportunities from people and discovery, not exclusively by points on a skill tree.
 
+## Detailed livelihood design
+See [GDD 08 — Life & Livelihood Systems](08-LIFE-LIVELIHOOD-GDD.md) for inventory/container/transaction invariants, crafting/cooking, fishing, gathering, farming, property/placement, trade and work domain boundaries. **That document is a design proposal, not a mandate to create one global manager per feature.**
+
 ## Housing and livelihoods
 Start sleeping in/around the stable; later rent a room in an inn and acquire a small house, optionally with adjoining land for cultivation and selling crops. Home interiors, furniture, ownership, storage, and farming must not require a full Sims building simulator. Important future home: ownable, upgradeable traveling boat.
 

@@ -44,11 +44,14 @@ Status: **Core candidate**, **Feature candidate**, **Later**, or **Decision need
 | L04 | Work / Small Jobs | Pay and proof of service for chores/deliveries | A permanently locked player career | Feature |
 | L05 | Trade / Vendors | Buy/sell rules, stock and availability | A fixed economic history of every world market | Feature |
 | L06 | Crafting / Learning | Recipes, ingredient requirements, learned techniques | Universal skill-tree gates | Feature |
-| L07 | Housing & Furniture | Lodging, rooms, storage, furniture placement restrictions | A full room editor at launch | Feature |
+| L07 | Housing & Placement | Lodging, rooms, storage and valid furniture positions, delegated property access | A full room editor at launch or an independent item ledger | Feature |
 | L08 | Farming / Growing | Crop growth conditions and harvesting, optionally climate/soil compatibility | Turning game into a farming-first simulator | Later |
 | L09 | Needs / Rest | Rest and light everyday needs if player-approved | Hard survival meters by default | Decision needed |
 | L10 | Character Skills | Limited progression in combat/speech/craft/life fields | Permanent supernatural magic mastery | Feature |
 | L11 | Companions | Animal bonds, follow behaviors, routine actions, care | Combat pet battalions or collectible rarity economy | Feature |
+| L12 | Fishing | Fishing spots, gear/activity state and catch resolution | Item ledger, every fish as a persistent simulated NPC | Feature |
+| L13 | Gathering / World Sources | Physical gatherable source state, harvest availability, regrowth when designed | Inventory ledger or cultivated plot growth | Feature |
+| L14 | Cooking / Food Preparation | Food-specific recipes/station interaction and any approved timed processing | Another Inventory manager; forced complex cooking jobs | Feature |
 
 ## D. Adventure, travel and consequences
 
@@ -79,6 +82,8 @@ Status: **Core candidate**, **Feature candidate**, **Later**, or **Decision need
 | X01 | Platform / Mobile Lifecycle | Suspend/resume, orientation, permissions, export-dependent integrations | Checkpoint penalty | Core |
 | X02 | Settings & Accessibility | Audio, vibration, input visibility, text scaling, safe area | Simulation truth | Feature |
 | X03 | Monetization Adapters | Optional ads toggle (free disable), platform ad SDK gateway, optional cosmetics | Predatory progression gates or economic simulation | Later |
+
+For the detailed design and authority boundaries of all everyday-life capabilities, read **[GDD 08 — Life & Livelihood Systems](08-LIFE-LIVELIHOOD-GDD.md)**. This table lists domains, **not** mandatory classes or initial-build commitments.
 
 ## Do NOT turn this table into 40 managers
 This is a **capability inventory**, not a mandate to create 40 subsystems/classes. For example:
@@ -127,7 +132,7 @@ This diagram illustrates **directional ownership**, not every event or class ref
 - Suspend app during exploration: restore player progress according to recovery contract, not a hack around gameplay checkpoints.
 
 ## Questions for owner review
-1. Is **C# first** acceptable if Android/iOS .NET export succeeds, despite Web export exclusion?
+1. Owner prefers **GDScript** and Web is a target; confirm typed GDScript-first, and decide whether any platform-specific native extension is genuinely required.
 2. Do you prefer **one composition root + one GameSession**, or multiple global Autoloads?
 3. Is **manual DI**, not a generic container, acceptable for the foundation?
 4. Should offscreen NPC simulation be lightweight schedule reconciliation by default?
