@@ -24,6 +24,7 @@ var _buttons: Dictionary = {}
 var _livelihood: LivelihoodPanel
 var _clock: Label
 var _tabs: TabContainer
+var _conversation: ConversationPanel
 
 func initialize(directory: String = RECOVERY) -> bool:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE))
@@ -151,6 +152,15 @@ func _ready() -> void:
 	work_scroll.add_child(_livelihood)
 	_livelihood.configure(_model, _actor, _data.presentation.labels, _prepare_action, _map.visual_position)
 	_livelihood.message.connect(_show_message)
+	if _model.narrative != null:
+		var narrative_scroll := ScrollContainer.new()
+		narrative_scroll.name = "Conversations"
+		tabs.add_child(narrative_scroll)
+		_conversation = ConversationPanel.new()
+		_conversation.name = "Conversation"
+		narrative_scroll.add_child(_conversation)
+		_conversation.configure(_model, _actor, _prepare_action)
+		_button(time_row, "Talk", _talk_nearby)
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.
@@ -275,6 +285,7 @@ func _refresh(_revision: int) -> void:
 		_buttons[verb].disabled = not shop or not _model.interactions.available(_target(), snapshot.minute) if verb in ["buy", "sell"] else not _model.inventory.can_access(_actor, _target())
 	_clock.text = _region_label() + " · " + "Day %d · %02d:%02d" % [int(snapshot.minute / WorldClock.MINUTES_PER_DAY) + 1, int(snapshot.minute / 60) % 24, int(snapshot.minute) % 60]
 	_livelihood.refresh()
+	if _conversation != null: _conversation.refresh()
 	_map.queue_redraw()
 
 func _goods_text(goods: Dictionary) -> String:
@@ -307,6 +318,11 @@ func _use_target(id: String) -> void:
 			_show_message("Entered " + _region_label())
 		else: _show_message(result.code)
 		return
+	if _model.narrative != null:
+		result = _model.inspect_object(_intent("inspect"), _actor, id)
+		if not result.ok:
+			_show_message(result.code)
+			return
 	_select_target(id)
 	_tabs.current_tab = 1 if id in _model.crafting.station_ids() or not _model.npcs.projection(id, _model.session.now()).is_empty() else 0
 	_show_message("Using " + str(_data.presentation.labels.get(id, id)) + ". Choose an action; goods and payments require confirmation.")
@@ -314,3 +330,15 @@ func _use_target(id: String) -> void:
 func _region_label() -> String:
 	var region := _model.actor_region(_actor)
 	return _data.presentation.get("region_labels", {}).get(region, region)
+
+func _talk_nearby() -> void:
+	var prepared := _prepare_action()
+	if not prepared.ok:
+		_show_message(prepared.code)
+		return
+	var id := _map.nearby_target()
+	if id.is_empty() or not _model.narrative.can_talk(id):
+		_show_message("Approach someone who has time to talk.")
+		return
+	_tabs.current_tab = 2
+	_conversation.open(id)

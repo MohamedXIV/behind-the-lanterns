@@ -11,18 +11,19 @@ var interactions: InteractionRules
 var npcs: NpcScheduleRules
 var crafting: CraftingRules
 var work: WorkRules
+var narrative: NarrativeRules
 
 static func create(data: Dictionary, world_id: String) -> GameplayModel:
-	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute"]): return null
+	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative"]): return null
 	# Match the codec's canonical numeric representation at content ingestion.
 	data = WorldData.normalize(data)
 	for field in ["world", "inventory", "economy", "interactions"]:
 		if not data[field] is Dictionary: return null
-	for field in ["npcs", "crafting", "work"]:
+	for field in ["npcs", "crafting", "work", "narrative"]:
 		if data.has(field) and not data[field] is Dictionary: return null
 	if not WorldData.integer(data.get("start_minute", 0)): return null
 	var content := {"inventory": data.inventory, "economy": data.economy, "interactions": data.interactions}
-	for field in ["npcs", "crafting", "work", "start_minute"]:
+	for field in ["npcs", "crafting", "work", "start_minute", "narrative"]:
 		if data.has(field): content[field] = data[field]
 	var definition := WorldDefinition.create(data.world, content)
 	if definition == null: return null
@@ -45,7 +46,12 @@ static func create(data: Dictionary, world_id: String) -> GameplayModel:
 		if not definition.has_definition(recipe.station_definition): return null
 	model.work = WorkRules.create(data.get("work", {}), model.inventory, model.commerce, model.interactions)
 	if model.work == null: return null
-	model.session = GameSession.create(definition, [model.inventory, model.commerce, model.interactions, model.crafting, model.work], world_id)
+	var domains: Array = [model.inventory, model.commerce, model.interactions, model.crafting, model.work]
+	if data.has("narrative"):
+		model.narrative = NarrativeRules.create(data.narrative, data.world, model.interactions, model.work)
+		if model.narrative == null: return null
+		domains.append(model.narrative)
+	model.session = GameSession.create(definition, domains, world_id)
 	if model.session != null and not model.session.advance_to(data.get("start_minute", 0)).ok: return null
 	return model if model.session != null else null
 
@@ -103,7 +109,19 @@ func adopt(candidate: GameSession) -> bool:
 	return true
 
 func enter(intent: String, actor_id: String, portal_id: String) -> OperationResult:
-	return session.transact(intent, func(tx: WorldTransaction) -> String: return interactions.enter(tx, actor_id, portal_id))
+	return session.transact(intent, func(tx: WorldTransaction) -> String:
+		if narrative != null:
+			var error := narrative.observe(tx, actor_id, portal_id)
+			if not error.is_empty(): return error
+		return interactions.enter(tx, actor_id, portal_id))
 
 func actor_region(actor_id: String) -> String:
 	return session.snapshot().entities[actor_id].region_id
+
+func talk(intent: String, actor_id: String, npc_id: String, choice: Variant = -1, expected_turns: int = 0) -> OperationResult:
+	if narrative == null: return OperationResult.failure("no_narrative")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return narrative.talk(tx, actor_id, npc_id, choice, expected_turns))
+
+func inspect_object(intent: String, actor_id: String, target_id: String) -> OperationResult:
+	if narrative == null: return OperationResult.failure("no_narrative")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return narrative.observe(tx, actor_id, target_id))
