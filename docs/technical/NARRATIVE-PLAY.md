@@ -43,3 +43,28 @@ Final execution: Godot 4.7.2.stable.official.ed1daf0bf; 397 regression assertion
 restart and startup PASS, with no warnings/errors. Unknown story actions roll back
 prior hearsay effects and the cursor; malformed frames/contexts and stale choices
 are rejected. Vendored runtime sources match the pinned Kiosk tree byte-for-byte.
+
+## Evidence follow-through and courier conversation
+
+Players can report the inspected dry basin to the merchant, then discuss that
+report with the courier. The merchant no longer acknowledges unreported findings
+and stops adding the water rumor after the report. Reports store the recipient
+per actor/evidence claim; they require confirmed observation and never change the
+static basin fact. This is a bounded reporting record, not NPC-wide beliefs or a
+gossip network. The journal marks reported discoveries and inspecting an object
+now displays its observation text.
+
+The courier's real Ink story hands over provisions through Work.deliver: goods,
+reserved payment, deadline cancellation and outcome remain one transaction. Failed
+handover leaves the story choice available. Completed delivery changes subsequent
+conversation. Ask about something else restarts topics with current world context;
+choice callbacks capture speaker and a hashed cursor including conversation epoch,
+so a button from an older same-length conversation cannot affect the new one.
+
+Narrative schema is now version 2 (reports and conversation epoch). Earlier
+prototype content saves are retained but incompatible; no migration is claimed.
+Recompile both stories with tools/compile-narrative.py and pinned inklecate 1.2.1.
+Final full Godot 4.7.2 run: 418 regression assertions, 47 actual UI/input assertions,
+all original/connected/region/narrative separate-process restart checks and startup
+PASS, no warnings/errors. Includes report save/restart, missing-evidence rejection,
+stale cursor, failed handover rollback and full gather/prepare/dialogue-deliver loop.
