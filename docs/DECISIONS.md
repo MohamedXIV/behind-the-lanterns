@@ -61,6 +61,8 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 
 | D-045 | Provisional | #14 fishing: authored habitat/bait pools, seeded saved opportunities, short active-time reel windows, bait spent on cast, full-bag catches held for collection at the spot. Fish reuse ordinary inventory, trade and preparation. No ecology/gear grind or platform acceptance is implied. |
 
+| D-046 | Provisional | #14 farming: data-defined plots and crops, ownership/access validation, hard environment/soil viability preserving seeds on failure, interval-spaced world-time watering, lazy time-anchored offscreen growth reconciliation, full-bag held harvests and bounded cultivation skill easing only soft thresholds. Harvests reuse ordinary inventory, preparation and trade. No farming-sim obligation or platform acceptance is implied. |
+
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.
 2. When a conflict arises, update this register and the affected GDD together.

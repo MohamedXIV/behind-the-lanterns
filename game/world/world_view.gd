@@ -144,6 +144,15 @@ func _draw() -> void:
 			draw_circle(at, 22, Color("254d60"))
 			draw_arc(at, 18, 0, TAU, 32, Color("85d4dc"), 2)
 			draw_circle(at + Vector2(0, -5), 3, Color("f5d48d"))
+		elif _model.farming != null and _model.farming.plots().has(id):
+			var plot_color := Color("6a533b") if _model.farming.can_access(_actor, id) else Color("5c4850")
+			draw_rect(Rect2(at - Vector2(20, 14), Vector2(40, 24)), plot_color)
+			draw_rect(Rect2(at - Vector2(16, 10), Vector2(32, 16)), plot_color.darkened(0.25))
+			var planted := _model.farming.projection(snapshot, id)
+			if not planted.is_empty():
+				var sprout := Color("e6c86e") if planted.ripe else Color("7bc97f")
+				for offset in [-10, 0, 10]:
+					draw_circle(at + Vector2(offset, -4), 4, sprout)
 		elif not npc.is_empty():
 			draw_circle(at + Vector2(0, -25), 8, color.lightened(0.2))
 			draw_rect(Rect2(at - Vector2(9, 18), Vector2(18, 20)), color)
@@ -157,6 +166,10 @@ func _draw() -> void:
 		draw_string(font, at + Vector2(-80, -28), _labels.get(id, id), HORIZONTAL_ALIGNMENT_CENTER, 160, 16, Color("e8e4d5"))
 		var detail: String = npc.activity if not npc.is_empty() else "Preparation" if id in _model.crafting.station_ids() else "%d goods" % _quantity(snapshot, id)
 		if _model.fishing != null and _model.fishing.spots().has(id): detail = "Water · Use to fish"
+		if _model.farming != null and _model.farming.plots().has(id):
+			var planted := _model.farming.projection(snapshot, id)
+			if planted.is_empty(): detail = "%s · %s" % [_model.farming.plots()[id].soil.capitalize(), "Use to plant" if _model.farming.can_access(_actor, id) else "Private plot"]
+			else: detail = "%s · %s" % [planted.label, "Ripe · Harvest" if planted.ripe else "Water (%d/%d)" % [planted.waterings_done, planted.waterings_needed] if planted.can_water else "Growing (%d/%d)" % [planted.waterings_done, planted.waterings_needed]]
 		if _model.interactions.is_portal(id): detail = "Door · Use nearby"
 		var job := _model.crafting.active_job(snapshot, _actor)
 		if not job.is_empty() and job.station_id == id: detail = "%s · %d%%" % [job.status, int(100 * job.elapsed / _model.crafting.recipes()[job.recipe_id].duration_seconds)]

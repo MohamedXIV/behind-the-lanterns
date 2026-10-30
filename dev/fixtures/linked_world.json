@@ -23,7 +23,10 @@
       "item.silverfish",
       "item.carp",
       "item.catfish",
-      "item.fish_meal"
+      "item.fish_meal",
+      "object.plot",
+      "item.lotus_seed",
+      "item.river_lotus"
     ],
     "entities": {
       "a:player": {
@@ -97,6 +100,22 @@
       "a:deep-pool": {
         "definition_id": "object.fishing_spot",
         "region_id": "region.river"
+      },
+      "a:garden-plot": {
+        "definition_id": "object.plot",
+        "region_id": "region.playground"
+      },
+      "a:sandy-plot": {
+        "definition_id": "object.plot",
+        "region_id": "region.playground"
+      },
+      "a:merchant-plot": {
+        "definition_id": "object.plot",
+        "region_id": "region.playground"
+      },
+      "a:river-bed": {
+        "definition_id": "object.plot",
+        "region_id": "region.river"
       }
     },
     "facts": {
@@ -144,6 +163,14 @@
       "item.fish_meal": {
         "label": "Prepared fish",
         "stack_limit": 5
+      },
+      "item.lotus_seed": {
+        "label": "Lotus seed",
+        "stack_limit": 5
+      },
+      "item.river_lotus": {
+        "label": "River lotus",
+        "stack_limit": 5
       }
     },
     "containers": {
@@ -160,7 +187,8 @@
         "items": {
           "item.dates": 12,
           "item.grain": 8,
-          "item.vessel": 1
+          "item.vessel": 1,
+          "item.lotus_seed": 3
         }
       },
       "a:chest": {
@@ -184,7 +212,8 @@
         "items": {
           "item.dates": 6,
           "item.grain": 10,
-          "item.vessel": 2
+          "item.vessel": 2,
+          "item.lotus_seed": 4
         }
       },
       "a:courier": {
@@ -240,6 +269,14 @@
           "item.fish_meal": {
             "buy_price": 7,
             "sell_price": 3
+          },
+          "item.lotus_seed": {
+            "buy_price": 4,
+            "sell_price": 2
+          },
+          "item.river_lotus": {
+            "buy_price": 8,
+            "sell_price": 4
           }
         }
       }
@@ -326,6 +363,22 @@
       "a:deep-pool": {
         "x": 600,
         "y": 180
+      },
+      "a:garden-plot": {
+        "x": 240,
+        "y": 60
+      },
+      "a:sandy-plot": {
+        "x": 360,
+        "y": 60
+      },
+      "a:merchant-plot": {
+        "x": 500,
+        "y": 60
+      },
+      "a:river-bed": {
+        "x": 480,
+        "y": 320
       }
     },
     "geometry": {
@@ -421,7 +474,11 @@
       "a:river-path": "Path to the river",
       "a:river-return": "Courtyard path",
       "a:reed-bank": "Quiet reed bank",
-      "a:deep-pool": "Deep river channel"
+      "a:deep-pool": "Deep river channel",
+      "a:garden-plot": "Courtyard garden plot",
+      "a:sandy-plot": "Sandy courtyard bed",
+      "a:merchant-plot": "Merchant's private planter",
+      "a:river-bed": "Riverbank silt bed"
     },
     "region_labels": {
       "region.playground": "Courtyard",
@@ -547,6 +604,18 @@
         },
         "outputs": {
           "item.fish_meal": 2
+        },
+        "duration_seconds": 3
+      },
+      "recipe.z_lotus_provisions": {
+        "label": "Pack lotus provisions",
+        "station_definition": "object.workbench",
+        "ingredients": {
+          "item.river_lotus": 1,
+          "item.grain": 1
+        },
+        "outputs": {
+          "item.provisions": 2
         },
         "duration_seconds": 3
       }
@@ -777,6 +846,85 @@
             "weight": 1
           }
         ]
+      }
+    }
+  },
+  "farming": {
+    "max_skill": 3,
+    "plots": {
+      "a:garden-plot": {
+        "label": "Courtyard garden plot · sunny loam",
+        "access": "owner",
+        "owner_id": "a:player",
+        "environment": "courtyard",
+        "soil": "loam"
+      },
+      "a:sandy-plot": {
+        "label": "Sandy courtyard bed · dry sandy soil",
+        "access": "owner",
+        "owner_id": "a:player",
+        "environment": "courtyard",
+        "soil": "sandy"
+      },
+      "a:merchant-plot": {
+        "label": "Merchant's private planter · sunny loam",
+        "access": "owner",
+        "owner_id": "a:merchant",
+        "environment": "courtyard",
+        "soil": "loam"
+      },
+      "a:river-bed": {
+        "label": "Riverbank silt bed · wet river silt",
+        "access": "public",
+        "owner_id": "",
+        "environment": "riverbank",
+        "soil": "silt"
+      }
+    },
+    "crops": {
+      "crop.grain": {
+        "label": "Courtyard grain",
+        "seed": "item.grain",
+        "outputs": {
+          "item.grain": 3
+        },
+        "environments": [
+          "courtyard",
+          "riverbank"
+        ],
+        "soils": [
+          "loam",
+          "silt"
+        ],
+        "skilled_soils": [
+          "sandy"
+        ],
+        "soil_skill_min": 1,
+        "growth_minutes": 360,
+        "min_growth_minutes": 240,
+        "growth_reduction_per_skill": 60,
+        "required_waterings": 2,
+        "max_watering_reduction": 1,
+        "watering_interval_minutes": 120
+      },
+      "crop.lotus": {
+        "label": "River lotus",
+        "seed": "item.lotus_seed",
+        "outputs": {
+          "item.river_lotus": 2
+        },
+        "environments": [
+          "riverbank"
+        ],
+        "soils": [
+          "silt"
+        ],
+        "growth_minutes": 720,
+        "min_growth_minutes": 480,
+        "growth_reduction_per_skill": 120,
+        "required_waterings": 1,
+        "max_watering_reduction": 0,
+        "watering_interval_minutes": 180
       }
     }
   }

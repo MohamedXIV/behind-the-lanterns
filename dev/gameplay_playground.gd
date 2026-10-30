@@ -27,6 +27,8 @@ var _tabs: TabContainer
 var _conversation: ConversationPanel
 var _fishing: FishingPanel
 var _fishing_tab: int = -1
+var _farming: FarmingPanel
+var _farming_tab: int = -1
 
 func initialize(directory: String = RECOVERY) -> bool:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE))
@@ -174,6 +176,15 @@ func _ready() -> void:
 		_fishing.name = "FishingPanel"
 		fishing_scroll.add_child(_fishing)
 		_fishing.configure(_model, _actor, _prepare_action, _map.visual_position)
+	if _model.farming != null:
+		_farming_tab = tabs.get_tab_count()
+		var farming_scroll := ScrollContainer.new()
+		farming_scroll.name = "Farming"
+		tabs.add_child(farming_scroll)
+		_farming = FarmingPanel.new()
+		_farming.name = "FarmingPanel"
+		farming_scroll.add_child(_farming)
+		_farming.configure(_model, _actor, _prepare_action)
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.
@@ -211,6 +222,7 @@ func _select_target(id: String) -> void:
 
 func _on_selection_changed(_index: int) -> void:
 	_map.selected_target = _target()
+	if _farming != null and _model.farming.plots().has(_target()): _farming.open(_target())
 	_refresh(0)
 
 func _bind(candidate: GameSession) -> void:
@@ -302,6 +314,7 @@ func _refresh(_revision: int) -> void:
 	_livelihood.refresh()
 	if _conversation != null: _conversation.refresh()
 	if _fishing != null: _fishing.refresh()
+	if _farming != null: _farming.refresh()
 	_map.queue_redraw()
 
 func _goods_text(goods: Dictionary) -> String:
@@ -330,6 +343,11 @@ func _use_target(id: String) -> void:
 	if _model.fishing != null and _model.fishing.spots().has(id):
 		_tabs.current_tab = _fishing_tab
 		_fishing.open(id)
+		return
+	if _model.farming != null and _model.farming.plots().has(id):
+		_select_target(id)
+		_tabs.current_tab = _farming_tab
+		_farming.open(id)
 		return
 	if _model.interactions.is_portal(id):
 		result = _model.enter(_intent("enter"), _actor, id)

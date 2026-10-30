@@ -53,6 +53,7 @@ func _run() -> void:
 	_region_restart(args[0], args[1] + "-regions")
 	_narrative_restart(args[0], args[1] + "-narrative")
 	_fishing_restart(args[0], args[1] + "-fishing")
+	_farming_restart(args[0], args[1] + "-farming")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -167,3 +168,20 @@ func _fishing_restart(mode: String, directory: String) -> void:
 		DirAccess.remove_absolute(directory)
 	m.session.close()
 	print("FISHING RESTART " + mode + " checked")
+
+func _farming_restart(mode: String, directory: String) -> void:
+	var fixture: RefCounted = load("res://tests/test_farming.gd").new()
+	var m: GameplayModel = fixture.model()
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(m.act("lotus-seed", "a:player", "a:supplies", "item.lotus_seed", 1, "take").ok and fixture.river_bed(m) and m.plant_crop("plant", "a:player", "a:river-bed", "crop.lotus").ok and m.water_crop("water", "a:player", "a:river-bed").ok and fixture.leave_river(m), "plant and water river lotus before restart")
+		expect(store.save(m.session).ok, "save planted offscreen crop")
+	else:
+		expect(m.adopt(store.load_candidate(m.session)), "restore farming process")
+		expect(m.session.now() == 480 and m.farming.projection(m.session.snapshot(), "a:river-bed").elapsed_minutes == 0, "restart adds no real-world offline crop time")
+		expect(m.wait_minutes("five-days", "a:player", 7200).ok and fixture.river_bed(m, "return"), "advance five world days after restart and return")
+		expect(m.farming.projection(m.session.snapshot(), "a:river-bed").ripe and m.harvest_crop("harvest", "a:player", "a:river-bed").ok and m.inventory.contents(m.session.snapshot(), "a:player").get("item.river_lotus", 0) == 2, "offscreen crop reconciles and harvests once after restart")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	m.session.close()
+	print("FARMING RESTART " + mode + " checked")

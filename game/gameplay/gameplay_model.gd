@@ -13,18 +13,19 @@ var crafting: CraftingRules
 var work: WorkRules
 var narrative: NarrativeRules
 var fishing: FishingRules
+var farming: FarmingRules
 
 static func create(data: Dictionary, world_id: String) -> GameplayModel:
-	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing"]): return null
+	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming"]): return null
 	# Match the codec's canonical numeric representation at content ingestion.
 	data = WorldData.normalize(data)
 	for field in ["world", "inventory", "economy", "interactions"]:
 		if not data[field] is Dictionary: return null
-	for field in ["npcs", "crafting", "work", "narrative", "fishing"]:
+	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming"]:
 		if data.has(field) and not data[field] is Dictionary: return null
 	if not WorldData.integer(data.get("start_minute", 0)): return null
 	var content := {"inventory": data.inventory, "economy": data.economy, "interactions": data.interactions}
-	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing"]:
+	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming"]:
 		if data.has(field): content[field] = data[field]
 	var definition := WorldDefinition.create(data.world, content)
 	if definition == null: return null
@@ -56,6 +57,10 @@ static func create(data: Dictionary, world_id: String) -> GameplayModel:
 		model.fishing = FishingRules.create(data.fishing, model.inventory, model.interactions)
 		if model.fishing == null: return null
 		domains.append(model.fishing)
+	if data.has("farming"):
+		model.farming = FarmingRules.create(data.farming, model.inventory, model.interactions)
+		if model.farming == null: return null
+		domains.append(model.farming)
 	model.session = GameSession.create(definition, domains, world_id)
 	if model.session != null and not model.session.advance_to(data.get("start_minute", 0)).ok: return null
 	return model if model.session != null else null
@@ -146,3 +151,19 @@ func reel_line(intent: String, actor: String) -> OperationResult:
 func cancel_fishing(intent: String, actor: String) -> OperationResult:
 	if fishing == null: return OperationResult.failure("no_fishing")
 	return session.transact(intent, func(tx: WorldTransaction) -> String: return fishing.cancel(tx, actor))
+
+func plant_crop(intent: String, actor: String, plot: String, crop: String) -> OperationResult:
+	if farming == null: return OperationResult.failure("no_farming")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return farming.plant(tx, actor, plot, crop))
+
+func water_crop(intent: String, actor: String, plot: String) -> OperationResult:
+	if farming == null: return OperationResult.failure("no_farming")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return farming.water(tx, actor, plot))
+
+func harvest_crop(intent: String, actor: String, plot: String) -> OperationResult:
+	if farming == null: return OperationResult.failure("no_farming")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return farming.harvest(tx, actor, plot))
+
+func clear_plot(intent: String, actor: String, plot: String) -> OperationResult:
+	if farming == null: return OperationResult.failure("no_farming")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return farming.clear(tx, actor, plot))
