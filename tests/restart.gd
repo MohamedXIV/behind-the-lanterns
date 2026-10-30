@@ -55,6 +55,7 @@ func _run() -> void:
 	_fishing_restart(args[0], args[1] + "-fishing")
 	_farming_restart(args[0], args[1] + "-farming")
 	_web_ack_restart(args[0], args[1] + "-web-ack")
+	_law_restart(args[0], args[1] + "-law")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -214,3 +215,22 @@ func _web_ack_restart(mode: String, directory: String) -> void:
 		DirAccess.remove_absolute(directory)
 	m.session.close()
 	print("WEB ACK RESTART " + mode + " checked")
+
+func _law_restart(mode: String, directory: String) -> void:
+	var fixture: RefCounted = load("res://tests/test_law.gd").new()
+	var m: GameplayModel = fixture.model()
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(m.move_actor("near-guard", "a:player", 480, 340).ok and m.confront_guard("arrest", "a:player", "a:gate-guard").ok, "scripted guard arrest before restart")
+		expect(m.move_actor("near-detainee", "a:player", 520, 220).ok and m.talk("jail-talk", "a:player", "a:detainee").ok, "open watchhouse conversation before restart")
+		expect(store.save(m.session).ok, "save detained state in watchhouse")
+	else:
+		expect(m.adopt(store.load_candidate(m.session)), "restore detained state in fresh process")
+		var rec := m.law.status_of(m.session.snapshot(), "a:player")
+		expect(m.actor_region("a:player") == "region.watchhouse" and rec.status == "detained" and rec.offense == "guard_assault", "detained status and watchhouse region survive restart")
+		expect(m.move_actor("to-door", "a:player", 100, 330).ok and m.enter("locked", "a:player", "a:watchhouse-exit").code == "detained_until_release", "exit remains locked after restart")
+		expect(m.serve_sentence("serve", "a:player").ok and m.actor_region("a:player") == "region.playground" and m.law.status_of(m.session.snapshot(), "a:player").status == "clear", "serving sentence after restart releases player to courtyard")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	m.session.close()
+	print("LAW RESTART " + mode + " checked")

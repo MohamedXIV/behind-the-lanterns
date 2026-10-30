@@ -106,3 +106,12 @@ func resolve_payment(tx: WorldTransaction, hold_id: String, pay_recipient: bool)
 	state.holds.erase(hold_id)
 	state.wallets[recipient] += hold.amount
 	return "" if tx.write_domain(DOMAIN, state) else "commerce_write_failed"
+
+func transfer_funds(tx: WorldTransaction, payer: String, payee: String, amount: int) -> String:
+	if not _wallets.has(payer) or not _wallets.has(payee) or payer == payee or not WorldData.integer(amount, 1): return "invalid_transfer"
+	var state := tx.read_domain(DOMAIN)
+	if state.wallets[payer] < amount: return "insufficient_funds"
+	if _owned_balance(state, payee) > WorldData.MAX_COUNTER - amount: return "balance_overflow"
+	state.wallets[payer] -= amount
+	state.wallets[payee] += amount
+	return "" if tx.write_domain(DOMAIN, state) else "commerce_write_failed"

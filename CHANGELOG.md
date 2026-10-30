@@ -2,7 +2,7 @@
 
 Meaningful player-facing changes and compatibility notes are recorded here using the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) convention.
 
-**Status:** pre-release development. The entries below are a retrospective summary of merged prototype work **through PR #25 (30 October 2026)**, **not a published version or release**. There is deliberately no version tag or release date for these changes.
+**Status:** pre-release development. The entries below are a retrospective summary of merged prototype work **through PR #27 (30 October 2026)**, **not a published version or release**. There is deliberately no version tag or release date for these changes.
 
 For current system completeness and test/platform evidence, see [Implementation Status](docs/IMPLEMENTATION-STATUS.md). For release identifiers, tagging and save compatibility, see [Versioning Policy](docs/VERSIONING.md).
 
@@ -18,10 +18,11 @@ For current system completeness and test/platform evidence, see [Implementation 
 - Location-dependent fishing with bait choice, a short active-time reel window, saved catch opportunities, and ordinary goods/trade/preparation integration ([#21](https://github.com/MohamedXIV/behind-the-lanterns/pull/21)).
 - Soil/environment-sensitive cultivation, spaced watering, bounded cultivation skills, lazy offscreen crop growth, and harvest/trade/preparation integration ([#23](https://github.com/MohamedXIV/behind-the-lanterns/pull/23)).
 - Mobile-first semantic input abstraction (`PlayerInput`), runtime key remapping, toggleable running pace, on-screen landscape `TouchControls` with visibility and left/right-handed layout swap, safe-area/compact viewport layout adaptation, pause/focus movement halt + safe-state commit, and Web `/userfs` IndexedDB save acknowledgment (`WebSaveAck` + `RecoveryStore`) ([#25](https://github.com/MohamedXIV/behind-the-lanterns/pull/25)).
+- Witness-aware law & pursuit (`LawRules`), refuge evasion, wanted-cooldown expiry, local work-commitment voucher persuasion, non-combat guard confrontation routing to scripted arrest, and a traversable social watchhouse (`region.watchhouse`) with Ink detainee dialogue, fine payment and sentence completion ([#7](https://github.com/MohamedXIV/behind-the-lanterns/issues/7), [#27](https://github.com/MohamedXIV/behind-the-lanterns/pull/27)).
 
 ### Changed
 - Added enforceable design-authority and progress-reporting guidance for development agents and a central implementation ledger ([#22](https://github.com/MohamedXIV/behind-the-lanterns/pull/22)).
-- Development fixture definitions, domain sets and narrative save schemas evolved as gameplay was added. **Older prototype saves can be rejected as incompatible**; they are preserved, not automatically migrated ([#18](https://github.com/MohamedXIV/behind-the-lanterns/pull/18)–[#23](https://github.com/MohamedXIV/behind-the-lanterns/pull/23)).
+- Development fixture definitions, domain sets and narrative save schemas evolved as gameplay was added. **Older prototype saves can be rejected as incompatible**; they are preserved, not automatically migrated ([#18](https://github.com/MohamedXIV/behind-the-lanterns/pull/18)–[#27](https://github.com/MohamedXIV/behind-the-lanterns/pull/27)).
 
 ### Fixed
 - Corrected fractional position round-tripping to avoid invalid saved positions during spatial gameplay ([#17](https://github.com/MohamedXIV/behind-the-lanterns/pull/17)).

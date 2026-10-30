@@ -29,6 +29,8 @@ var _fishing: FishingPanel
 var _fishing_tab: int = -1
 var _farming: FarmingPanel
 var _farming_tab: int = -1
+var _law: LawPanel
+var _law_tab: int = -1
 var _input: PlayerInput = PlayerInput.new()
 var _touch_controls: TouchControls
 var _margin: MarginContainer
@@ -226,6 +228,15 @@ func _ready() -> void:
 		_farming.name = "FarmingPanel"
 		farming_scroll.add_child(_farming)
 		_farming.configure(_model, _actor, _prepare_action)
+	if _model.law != null:
+		_law_tab = tabs.get_tab_count()
+		var law_scroll := ScrollContainer.new()
+		law_scroll.name = "Watch"
+		tabs.add_child(law_scroll)
+		_law = LawPanel.new()
+		_law.name = "LawPanel"
+		law_scroll.add_child(_law)
+		_law.configure(_model, _actor, _prepare_action, _map.sync_position)
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.
@@ -266,6 +277,7 @@ func _select_target(id: String) -> void:
 func _on_selection_changed(_index: int) -> void:
 	_map.selected_target = _target()
 	if _farming != null and _model.farming.plots().has(_target()): _farming.open(_target())
+	if _law != null: _law.open(_target())
 	_refresh(0)
 
 func _bind(candidate: GameSession) -> void:
@@ -303,7 +315,10 @@ func _wait(minutes: int) -> void:
 	if not position_result.ok:
 		_status.text = position_result.code
 		return
+	var before_region := _model.actor_region(_actor)
 	var result := _model.wait_minutes(_intent("wait"), _actor, minutes)
+	if result.ok and _model.actor_region(_actor) != before_region:
+		_map.sync_position()
 	_status.text = "Waited %d world minutes." % minutes if result.ok else _message(result.code)
 
 func _on_stopped(_point: Vector2) -> void:
@@ -374,6 +389,7 @@ func _refresh(_revision: int) -> void:
 	if _conversation != null: _conversation.refresh()
 	if _fishing != null: _fishing.refresh()
 	if _farming != null: _farming.refresh()
+	if _law != null: _law.refresh()
 	_map.queue_redraw()
 
 func _goods_text(goods: Dictionary) -> String:
@@ -407,6 +423,12 @@ func _use_target(id: String) -> void:
 		_select_target(id)
 		_tabs.current_tab = _farming_tab
 		_farming.open(id)
+		return
+	if _model.law != null and _model.law.is_guard(id):
+		_select_target(id)
+		_tabs.current_tab = _law_tab
+		_law.open(id)
+		_show_message("Speaking with " + str(_data.presentation.labels.get(id, id)) + ". Guards are never combat targets.")
 		return
 	if _model.interactions.is_portal(id):
 		result = _model.enter(_intent("enter"), _actor, id)
@@ -446,6 +468,19 @@ func _talk_nearby() -> void:
 	_conversation.open(id)
 
 func _on_combat_intent(action: String) -> void:
+	if _model.law != null:
+		var nearby := _map.nearby_target()
+		if action == PlayerInput.PRIMARY_ACTION and _model.law.is_guard(nearby):
+			if _prepare_action().ok and _model.confront_guard(_intent("strike-guard"), _actor, nearby).ok:
+				_map.sync_position()
+				if _law != null: _law.refresh()
+				_show_message("Guards are never combat targets: scripted arrest and transfer to the watchhouse.")
+				return
+		elif action == PlayerInput.DODGE and _model.law.refuges().has(nearby) and _model.law.status_of(_model.session.snapshot(), _actor).status == "pursued":
+			if _prepare_action().ok and _model.evade_pursuit(_intent("evade-input"), _actor, nearby).ok:
+				if _law != null: _law.refresh()
+				_show_message("Concealed in refuge until pursuit cooled down.")
+				return
 	var label: String = {"btl_dodge": "Evade", "btl_block": "Guard", "btl_primary_action": "Action"}.get(action, action)
 	_show_message("%s ready — peaceful quarter (no active threat nearby)." % label)
 

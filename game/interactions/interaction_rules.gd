@@ -161,3 +161,15 @@ func enter(tx: WorldTransaction, actor_id: String, portal_id: String) -> String:
 	var state := tx.read_domain(DOMAIN)
 	state.positions[actor_id] = {"x": destination.x, "y": destination.y}
 	return "" if tx.write_domain(DOMAIN, state) else "position_write_failed"
+
+func relocate_actor(tx: WorldTransaction, actor_id: String, region_id: String, x: Variant, y: Variant) -> String:
+	if not actor_id in _config.actors: return "unknown_actor"
+	if not _valid_point({"x": x, "y": y}): return "invalid_position"
+	x = snappedf(float(x), POSITION_STEP)
+	y = snappedf(float(y), POSITION_STEP)
+	if not geometry_for(region_id).walkable(Vector2(x, y)): return "position_blocked"
+	var error := tx.move_entity(actor_id, region_id)
+	if not error.is_empty(): return error
+	var state := tx.read_domain(DOMAIN)
+	state.positions[actor_id] = WorldData.normalize({"x": x, "y": y})
+	return "" if tx.write_domain(DOMAIN, state) else "position_write_failed"
