@@ -1,5 +1,5 @@
 # Implementation Status — Behind the Lanterns
-**Snapshot through merged PR #24 and mobile-first interaction / Web persistence batch · 30 October 2026.**
+**Snapshot through merged PR #25 (mobile-first interaction & Web persistence batch) · 30 October 2026.**
 This is the **implementation ledger**, not a new design roadmap or authorization to implement an unapproved feature. The Constitution, Decision Register and GDDs determine design authority; actual main/code, issues and verification documents determine implementation status.
 
 ## Status vocabulary
@@ -12,11 +12,11 @@ This is the **implementation ledger**, not a new design roadmap or authorization
 
 | Capability | State | Evidence and boundary |
 | --- | --- | --- |
-| Transactional session, event scheduling, IDs, A/B recovery & Web `/userfs` sync adapter | Core working | [#11](https://github.com/MohamedXIV/behind-the-lanterns/pull/11), [MOBILE-WEB-PLAY.md](technical/MOBILE-WEB-PLAY.md); native and `WebSaveAck` `/userfs` IndexedDB verification implemented; live browser/device acceptance unverified |
+| Transactional session, event scheduling, IDs, A/B recovery & Web `/userfs` sync adapter | Core working | [#11](https://github.com/MohamedXIV/behind-the-lanterns/pull/11), [#25](https://github.com/MohamedXIV/behind-the-lanterns/pull/25), [MOBILE-WEB-PLAY.md](technical/MOBILE-WEB-PLAY.md); native and `WebSaveAck` `/userfs` IndexedDB verification implemented; live browser/device acceptance unverified |
 | Inventory, finite supplies/containers, commerce and positioning | Core working | [#13](https://github.com/MohamedXIV/behind-the-lanterns/pull/13); aggregate ordinary goods, not all unique-item and ownership policies |
 | Optional funded jobs, preparation, reservations and time-based deadline consequences | Core working | [#15](https://github.com/MohamedXIV/behind-the-lanterns/pull/15); bounded delivery/preparation, not every work/crafting mechanic |
 | Local navigation, obstacle-aware contextual world interaction | Partial | [#16](https://github.com/MohamedXIV/behind-the-lanterns/pull/16); static rectangular geometry, no general dynamic NPC collision |
-| Mobile-first input abstraction, landscape touch controls, safe-area layout & pause/resume | Partial | [Issue #6](https://github.com/MohamedXIV/behind-the-lanterns/issues/6), [MOBILE-WEB-PLAY.md](technical/MOBILE-WEB-PLAY.md); semantic actions, key remapping, running pace, landscape touch D-pad/action cluster, visibility & left/right hand swap, notched safe-area margins and pause/focus state commit verified in Godot 4.7.2; physical touchscreen device acceptance unverified |
+| Mobile-first input abstraction, landscape touch controls, safe-area layout & pause/resume | Partial | [#25](https://github.com/MohamedXIV/behind-the-lanterns/pull/25), [Issue #6](https://github.com/MohamedXIV/behind-the-lanterns/issues/6), [MOBILE-WEB-PLAY.md](technical/MOBILE-WEB-PLAY.md); semantic actions, key remapping, running pace, landscape touch D-pad/action cluster, visibility & left/right hand swap, notched safe-area margins and pause/focus state commit verified in Godot 4.7.2; physical touchscreen device acceptance unverified |
 | Linked regions, courtyard/workshop/riverbank transitions and indoor persistence | Partial | [#17](https://github.com/MohamedXIV/behind-the-lanterns/pull/17), [#21](https://github.com/MohamedXIV/behind-the-lanterns/pull/21); technical content, not a production city or housing |
 | Real Ink, rumor/knowledge, discoveries and dialogue-triggered domain commands | Partial | [#18](https://github.com/MohamedXIV/behind-the-lanterns/pull/18), [#19](https://github.com/MohamedXIV/behind-the-lanterns/pull/19); small sample narrative, not full social epistemic model |
 | NPC schedule availability | Partial | [#15](https://github.com/MohamedXIV/behind-the-lanterns/pull/15); discrete projected positions, not live walking/routines |
