@@ -116,6 +116,12 @@ func portal_error(snapshot: Dictionary, actor_id: String, portal_id: String) -> 
 		return "detained_until_release"
 	return ""
 
+func public_travel_error(snapshot: Dictionary, actor_id: String) -> String:
+	match status_of(snapshot, actor_id).status:
+		"detained": return "actor_detained"
+		"pursued": return "carrier_refuses_pursuit"
+	return ""
+
 func confront_guard(tx: WorldTransaction, actor_id: String, target_id: String) -> String:
 	if not _config.guards.has(target_id): return "non_hostile_target"
 	var error := _interactions.reach_error(tx, actor_id, target_id)

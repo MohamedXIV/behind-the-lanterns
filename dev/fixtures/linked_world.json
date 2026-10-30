@@ -6,7 +6,8 @@
       "region.workshop",
       "region.alcove",
       "region.river",
-      "region.watchhouse"
+      "region.watchhouse",
+      "region.estuary"
     ],
     "definitions": [
       "actor.resident",
@@ -29,7 +30,8 @@
       "item.lotus_seed",
       "item.river_lotus",
       "actor.guard",
-      "actor.detainee"
+      "actor.detainee",
+      "actor.carrier"
     ],
     "entities": {
       "a:player": {
@@ -135,6 +137,22 @@
       "a:watchhouse-exit": {
         "definition_id": "object.door",
         "region_id": "region.watchhouse"
+      },
+      "a:boatman": {
+        "definition_id": "actor.carrier",
+        "region_id": "region.playground"
+      },
+      "a:caravan-leader": {
+        "definition_id": "actor.carrier",
+        "region_id": "region.playground"
+      },
+      "a:estuary-boatman": {
+        "definition_id": "actor.carrier",
+        "region_id": "region.estuary"
+      },
+      "a:waystation-caravan": {
+        "definition_id": "actor.carrier",
+        "region_id": "region.remote"
       }
     },
     "facts": {
@@ -252,7 +270,11 @@
   "economy": {
     "wallets": {
       "a:player": 10,
-      "a:merchant": 80
+      "a:merchant": 80,
+      "a:boatman": 0,
+      "a:caravan-leader": 0,
+      "a:estuary-boatman": 0,
+      "a:waystation-caravan": 0
     },
     "shops": {
       "a:merchant": {
@@ -414,6 +436,22 @@
       "a:watchhouse-exit": {
         "x": 100,
         "y": 330
+      },
+      "a:boatman": {
+        "x": 640,
+        "y": 80
+      },
+      "a:caravan-leader": {
+        "x": 620,
+        "y": 300
+      },
+      "a:estuary-boatman": {
+        "x": 360,
+        "y": 200
+      },
+      "a:waystation-caravan": {
+        "x": 360,
+        "y": 220
       }
     },
     "geometry": {
@@ -455,6 +493,14 @@
         ]
       },
       "region.watchhouse": {
+        "radius": 10,
+        "obstacles": []
+      },
+      "region.estuary": {
+        "radius": 10,
+        "obstacles": []
+      },
+      "region.remote": {
         "radius": 10,
         "obstacles": []
       }
@@ -526,14 +572,20 @@
       "a:gate-guard": "Courtyard watchman",
       "a:watch-warden": "Watchhouse warden",
       "a:detainee": "Detained porter",
-      "a:watchhouse-exit": "Watchhouse door"
+      "a:watchhouse-exit": "Watchhouse door",
+      "a:boatman": "Public packet boatman",
+      "a:caravan-leader": "Public caravan leader",
+      "a:estuary-boatman": "Estuary packet boatman",
+      "a:waystation-caravan": "Waystation caravan leader"
     },
     "region_labels": {
       "region.playground": "Courtyard",
       "region.workshop": "Workshop",
       "region.alcove": "Quiet alcove",
       "region.river": "Riverbank",
-      "region.watchhouse": "Watchhouse"
+      "region.watchhouse": "Watchhouse",
+      "region.estuary": "Estuary Quay",
+      "region.remote": "Red Dune Waystation"
     },
     "default_item": "item.dates"
   },
@@ -621,6 +673,110 @@
           "y": 380,
           "available": false,
           "activity": "Off duty"
+        }
+      ]
+    },
+    "a:boatman": {
+      "period_minutes": 1440,
+      "slots": [
+        {
+          "start": 0,
+          "x": 640,
+          "y": 80,
+          "available": false,
+          "activity": "Packet moored"
+        },
+        {
+          "start": 360,
+          "x": 640,
+          "y": 80,
+          "available": true,
+          "activity": "Boarding packet passengers"
+        },
+        {
+          "start": 1020,
+          "x": 640,
+          "y": 80,
+          "available": false,
+          "activity": "Packet moored"
+        }
+      ]
+    },
+    "a:estuary-boatman": {
+      "period_minutes": 1440,
+      "slots": [
+        {
+          "start": 0,
+          "x": 360,
+          "y": 200,
+          "available": false,
+          "activity": "Packet moored"
+        },
+        {
+          "start": 360,
+          "x": 360,
+          "y": 200,
+          "available": true,
+          "activity": "Boarding return passengers"
+        },
+        {
+          "start": 1020,
+          "x": 360,
+          "y": 200,
+          "available": false,
+          "activity": "Packet moored"
+        }
+      ]
+    },
+    "a:caravan-leader": {
+      "period_minutes": 1440,
+      "slots": [
+        {
+          "start": 0,
+          "x": 620,
+          "y": 300,
+          "available": false,
+          "activity": "Caravan resting"
+        },
+        {
+          "start": 420,
+          "x": 620,
+          "y": 300,
+          "available": true,
+          "activity": "Loading public caravan"
+        },
+        {
+          "start": 1140,
+          "x": 620,
+          "y": 300,
+          "available": false,
+          "activity": "Caravan resting"
+        }
+      ]
+    },
+    "a:waystation-caravan": {
+      "period_minutes": 1440,
+      "slots": [
+        {
+          "start": 0,
+          "x": 360,
+          "y": 220,
+          "available": false,
+          "activity": "Caravan resting"
+        },
+        {
+          "start": 420,
+          "x": 360,
+          "y": 220,
+          "available": true,
+          "activity": "Loading return caravan"
+        },
+        {
+          "start": 1140,
+          "x": 360,
+          "y": 220,
+          "available": false,
+          "activity": "Caravan resting"
         }
       ]
     }
@@ -1072,6 +1228,58 @@
       },
       "a:dry-basin": {
         "label": "Shadowed stone alcove"
+      }
+    }
+  },
+  "travel": {
+    "routes": {
+      "route.ship_estuary": {
+        "label": "Estuary packet",
+        "mode": "ship",
+        "carrier_id": "a:boatman",
+        "origin_region": "region.playground",
+        "destination_region": "region.estuary",
+        "x": 300,
+        "y": 200,
+        "fare": 4,
+        "duration_minutes": 240,
+        "log": "The public packet follows reed channels into brighter salt air and ties up beside the estuary quay."
+      },
+      "route.ship_return": {
+        "label": "Courtyard packet",
+        "mode": "ship",
+        "carrier_id": "a:estuary-boatman",
+        "origin_region": "region.estuary",
+        "destination_region": "region.playground",
+        "x": 580,
+        "y": 80,
+        "fare": 4,
+        "duration_minutes": 240,
+        "log": "Salt air gives way to river reeds as the returning packet brings the courtyard lanterns back into view."
+      },
+      "route.caravan_waystation": {
+        "label": "Red dune caravan",
+        "mode": "caravan",
+        "carrier_id": "a:caravan-leader",
+        "origin_region": "region.playground",
+        "destination_region": "region.remote",
+        "x": 300,
+        "y": 220,
+        "fare": 3,
+        "duration_minutes": 300,
+        "log": "The public caravan leaves the courtyard lamps behind, crossing scrub and red dunes before reaching the waystation."
+      },
+      "route.caravan_return": {
+        "label": "Courtyard caravan",
+        "mode": "caravan",
+        "carrier_id": "a:waystation-caravan",
+        "origin_region": "region.remote",
+        "destination_region": "region.playground",
+        "x": 560,
+        "y": 300,
+        "fare": 3,
+        "duration_minutes": 300,
+        "log": "The return caravan follows old stone markers across the dunes and reaches the courtyard by the familiar lamps."
       }
     }
   }

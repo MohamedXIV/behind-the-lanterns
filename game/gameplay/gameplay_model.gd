@@ -15,18 +15,19 @@ var narrative: NarrativeRules
 var fishing: FishingRules
 var farming: FarmingRules
 var law: LawRules
+var travel: TravelRules
 
 static func create(data: Dictionary, world_id: String) -> GameplayModel:
-	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law"]): return null
+	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel"]): return null
 	# Match the codec's canonical numeric representation at content ingestion.
 	data = WorldData.normalize(data)
 	for field in ["world", "inventory", "economy", "interactions"]:
 		if not data[field] is Dictionary: return null
-	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming", "law"]:
+	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming", "law", "travel"]:
 		if data.has(field) and not data[field] is Dictionary: return null
 	if not WorldData.integer(data.get("start_minute", 0)): return null
 	var content := {"inventory": data.inventory, "economy": data.economy, "interactions": data.interactions}
-	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law"]:
+	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel"]:
 		if data.has(field): content[field] = data[field]
 	var definition := WorldDefinition.create(data.world, content)
 	if definition == null: return null
@@ -66,6 +67,10 @@ static func create(data: Dictionary, world_id: String) -> GameplayModel:
 		model.law = LawRules.create(data.law, data.world, model.interactions, model.commerce, model.work)
 		if model.law == null: return null
 		domains.append(model.law)
+	if data.has("travel"):
+		model.travel = TravelRules.create(data.travel, data.world, model.interactions, model.commerce)
+		if model.travel == null: return null
+		domains.append(model.travel)
 	model.session = GameSession.create(definition, domains, world_id)
 	if model.session != null and not model.session.advance_to(data.get("start_minute", 0)).ok: return null
 	return model if model.session != null else null
@@ -205,3 +210,16 @@ func serve_sentence(intent: String, actor: String) -> OperationResult:
 	var record := law.status_of(session.snapshot(), actor)
 	if record.status != "detained": return OperationResult.failure("not_detained")
 	return session.transact(intent, func(_tx: WorldTransaction) -> String: return "", record.until_minute)
+
+func take_route(intent: String, actor: String, route_id: String) -> OperationResult:
+	if travel == null: return OperationResult.failure("no_travel")
+	if session.snapshot().commands.has(intent):
+		return session.transact(intent, func(_tx: WorldTransaction) -> String: return "must_not_run")
+	if travel.route(route_id).is_empty(): return OperationResult.failure("unknown_route")
+	var arrival := travel.arrival_minute(session.snapshot(), route_id)
+	if arrival < 0: return OperationResult.failure("travel_time_overflow")
+	return session.transact(intent, func(tx: WorldTransaction) -> String:
+		if law != null:
+			var law_error := law.public_travel_error(tx.snapshot(), actor)
+			if not law_error.is_empty(): return law_error
+		return travel.board(tx, actor, route_id, TravelRules.journey_id(intent)), arrival)

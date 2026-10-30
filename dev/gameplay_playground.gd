@@ -31,6 +31,8 @@ var _farming: FarmingPanel
 var _farming_tab: int = -1
 var _law: LawPanel
 var _law_tab: int = -1
+var _travel: TravelPanel
+var _travel_tab: int = -1
 var _input: PlayerInput = PlayerInput.new()
 var _touch_controls: TouchControls
 var _margin: MarginContainer
@@ -237,6 +239,15 @@ func _ready() -> void:
 		_law.name = "LawPanel"
 		law_scroll.add_child(_law)
 		_law.configure(_model, _actor, _prepare_action, _map.sync_position)
+	if _model.travel != null:
+		_travel_tab = tabs.get_tab_count()
+		var travel_scroll := ScrollContainer.new()
+		travel_scroll.name = "Travel"
+		tabs.add_child(travel_scroll)
+		_travel = TravelPanel.new()
+		_travel.name = "TravelPanel"
+		travel_scroll.add_child(_travel)
+		_travel.configure(_model, _actor, _prepare_action, _map.sync_position, _data.presentation.labels, _data.presentation.get("region_labels", {}))
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.
@@ -289,6 +300,7 @@ func _bind(candidate: GameSession) -> void:
 func _on_replaced(candidate: GameSession) -> void:
 	_livelihood.reset_after_load()
 	if _fishing != null: _fishing.reset_after_load()
+	if _travel != null: _travel.reset_after_load()
 	_bind(candidate)
 	_map.sync_position()
 	session_changed.emit(candidate)
@@ -390,6 +402,7 @@ func _refresh(_revision: int) -> void:
 	if _fishing != null: _fishing.refresh()
 	if _farming != null: _farming.refresh()
 	if _law != null: _law.refresh()
+	if _travel != null: _travel.refresh()
 	_map.queue_redraw()
 
 func _goods_text(goods: Dictionary) -> String:
@@ -423,6 +436,12 @@ func _use_target(id: String) -> void:
 		_select_target(id)
 		_tabs.current_tab = _farming_tab
 		_farming.open(id)
+		return
+	if _model.travel != null and _model.travel.is_carrier(id):
+		_select_target(id)
+		_tabs.current_tab = _travel_tab
+		_travel.open(id)
+		_show_message("Choose a public route and confirm the fare. Travel logs are optional reading.")
 		return
 	if _model.law != null and _model.law.is_guard(id):
 		_select_target(id)
