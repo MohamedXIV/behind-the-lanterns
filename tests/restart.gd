@@ -52,6 +52,7 @@ func _run() -> void:
 	_connected_restart(args[0], args[1] + "-connected")
 	_region_restart(args[0], args[1] + "-regions")
 	_narrative_restart(args[0], args[1] + "-narrative")
+	_fishing_restart(args[0], args[1] + "-fishing")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -149,3 +150,20 @@ func _narrative_restart(mode: String, directory: String) -> void:
 		DirAccess.remove_absolute(directory)
 	m.session.close()
 	print("NARRATIVE RESTART " + mode + " checked")
+
+func _fishing_restart(mode: String, directory: String) -> void:
+	var fixture: RefCounted = load("res://tests/test_fishing.gd").new()
+	var m: GameplayModel = fixture.model()
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(m.act("bait", "a:player", "a:supplies", "item.grain", 2, "take").ok and fixture.river(m) and m.cast_line("cast", "a:player", "a:reed-bank", "item.grain").ok and m.progress_fishing("partial", "a:player", 1000).ok, "fishing opportunity before restart")
+		expect(store.save(m.session).ok, "save active fishing")
+	else:
+		expect(m.adopt(store.load_candidate(m.session)), "restore fishing process")
+		var fish: String = m.fishing.attempt(m.session.snapshot(), "a:player").fish
+		expect(m.fishing.attempt(m.session.snapshot(), "a:player").elapsed_ms == 1000, "active timing survives restart")
+		expect(m.progress_fishing("bite", "a:player", 1000).ok and m.reel_line("catch", "a:player").ok and m.inventory.contents(m.session.snapshot(), "a:player").get(fish, 0) == 1, "same saved species caught after restart")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	m.session.close()
+	print("FISHING RESTART " + mode + " checked")

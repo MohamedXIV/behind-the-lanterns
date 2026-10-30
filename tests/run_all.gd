@@ -37,6 +37,7 @@ func _run() -> void:
 	load("res://tests/test_regions.gd").new().run(self)
 	load("res://tests/test_narrative.gd").new().run(self)
 	load("res://tests/test_living_world.gd").new().run(self)
+	load("res://tests/test_fishing.gd").new().run(self)
 	_finish()
 
 func _finish() -> void:

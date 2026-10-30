@@ -138,7 +138,7 @@ func release(tx: WorldTransaction, reservation_id: String) -> String:
 	return "" if tx.write_domain(DOMAIN, state) else "inventory_write_failed"
 
 func transform_reserved(tx: WorldTransaction, reservation_id: String, outputs: Dictionary) -> String:
-	if not _valid_contents(outputs) or outputs.is_empty(): return "invalid_outputs"
+	if not _valid_contents(outputs): return "invalid_outputs"
 	var state := tx.read_domain(DOMAIN)
 	if not state.reservations.has(reservation_id): return "unknown_reservation"
 	var record: Dictionary = state.reservations[reservation_id]
@@ -152,4 +152,14 @@ func transform_reserved(tx: WorldTransaction, reservation_id: String, outputs: D
 		goods[item] = combined
 	if slots_used(goods) > _containers[record.container_id].slots: return "container_full"
 	state.reservations.erase(reservation_id)
+	return "" if tx.write_domain(DOMAIN, state) else "inventory_write_failed"
+
+func add_goods(tx: WorldTransaction, holder: String, outputs: Dictionary) -> String:
+	if not _containers.has(holder) or not _valid_contents(outputs) or outputs.is_empty(): return "invalid_outputs"
+	var state := tx.read_domain(DOMAIN)
+	var goods: Dictionary = state.contents[holder]
+	for item in outputs:
+		if goods.get(item, 0) > WorldData.MAX_COUNTER - outputs[item]: return "quantity_overflow"
+		goods[item] = goods.get(item, 0) + outputs[item]
+	if slots_used(goods) > _containers[holder].slots: return "container_full"
 	return "" if tx.write_domain(DOMAIN, state) else "inventory_write_failed"
