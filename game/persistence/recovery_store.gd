@@ -5,13 +5,20 @@ extends RefCounted
 
 const SLOT_NAMES: Array[String] = ["slot_a.json", "slot_b.json"]
 var _directory: String
+var _web_ack: WebSaveAck
 var last_error: String = ""
 
-func _init(directory: String) -> void:
+func _init(directory: String, web_ack: WebSaveAck = null) -> void:
 	_directory = directory
+	_web_ack = web_ack if web_ack != null else WebSaveAck.new()
+
+func web_ack() -> WebSaveAck:
+	return _web_ack
 
 func save(session: GameSession) -> OperationResult:
-	if OS.has_feature("web"): return OperationResult.failure("web_sync_unverified")
+	if _web_ack.is_web() and not _web_ack.is_persistent():
+		last_error = "web_storage_unavailable"
+		return OperationResult.failure("web_storage_unavailable")
 	if session == null or not _directory.begins_with("user://"): return OperationResult.failure("invalid_storage_path")
 	if DirAccess.make_dir_recursive_absolute(_directory) != OK: return OperationResult.failure("storage_directory_failed")
 	var records := _read_slots(session)
@@ -39,12 +46,19 @@ func save(session: GameSession) -> OperationResult:
 		return OperationResult.failure("save_readback_failed")
 	# The active slot is never removed. Native rename replaces only the inactive file.
 	if DirAccess.rename_absolute(temporary, destination) != OK: return OperationResult.failure("save_publish_failed")
+	if _web_ack.is_web():
+		var sync_result := _web_ack.sync_and_verify(ProjectSettings.globalize_path(destination), encoded.to_utf8_buffer())
+		if not sync_result.ok:
+			DirAccess.remove_absolute(destination)
+			last_error = sync_result.code
+			return sync_result
+	last_error = ""
 	return OperationResult.success()
 
 func load_candidate(composition: GameSession) -> GameSession:
 	last_error = ""
-	if OS.has_feature("web"):
-		last_error = "web_sync_unverified"
+	if _web_ack.is_web() and not _web_ack.is_persistent():
+		last_error = "web_storage_unavailable"
 		return null
 	if composition == null or not _directory.begins_with("user://"):
 		last_error = "invalid_storage_path"

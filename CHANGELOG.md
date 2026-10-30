@@ -2,7 +2,7 @@
 
 Meaningful player-facing changes and compatibility notes are recorded here using the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) convention.
 
-**Status:** pre-release development. The entries below are a retrospective summary of merged prototype work **through PR #23 (30 October 2026)**, **not a published version or release**. There is deliberately no version tag or release date for these changes.
+**Status:** pre-release development. The entries below are a retrospective summary of merged prototype work **through PR #25 (30 October 2026)**, **not a published version or release**. There is deliberately no version tag or release date for these changes.
 
 For current system completeness and test/platform evidence, see [Implementation Status](docs/IMPLEMENTATION-STATUS.md). For release identifiers, tagging and save compatibility, see [Versioning Policy](docs/VERSIONING.md).
 
@@ -17,6 +17,7 @@ For current system completeness and test/platform evidence, see [Implementation 
 - Contextual memories of kept, cancelled and missed commitments, acknowledgements, and an optional follow-up favor ([#20](https://github.com/MohamedXIV/behind-the-lanterns/pull/20)).
 - Location-dependent fishing with bait choice, a short active-time reel window, saved catch opportunities, and ordinary goods/trade/preparation integration ([#21](https://github.com/MohamedXIV/behind-the-lanterns/pull/21)).
 - Soil/environment-sensitive cultivation, spaced watering, bounded cultivation skills, lazy offscreen crop growth, and harvest/trade/preparation integration ([#23](https://github.com/MohamedXIV/behind-the-lanterns/pull/23)).
+- Mobile-first semantic input abstraction (`PlayerInput`), runtime key remapping, toggleable running pace, on-screen landscape `TouchControls` with visibility and left/right-handed layout swap, safe-area/compact viewport layout adaptation, pause/focus movement halt + safe-state commit, and Web `/userfs` IndexedDB save acknowledgment (`WebSaveAck` + `RecoveryStore`) ([#25](https://github.com/MohamedXIV/behind-the-lanterns/pull/25)).
 
 ### Changed
 - Added enforceable design-authority and progress-reporting guidance for development agents and a central implementation ledger ([#22](https://github.com/MohamedXIV/behind-the-lanterns/pull/22)).
