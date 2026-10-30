@@ -71,6 +71,8 @@ These are examples of interaction between systems—not mandatory quests or prom
 | [Decision Register](docs/DECISIONS.md) | Explicit Locked/Provisional/Open/Deferred decisions |
 | [Agent Contract](AGENTS.md) | Mandatory design authorization and progress reporting for every AI coding agent |
 | [Implementation Status](docs/IMPLEMENTATION-STATUS.md) | Current code-backed feature coverage, limits, and verified platforms |
+| [Changelog](CHANGELOG.md) | Historical meaningful gameplay changes, compatibility notes and unreleased work |
+| [Versioning Policy](docs/VERSIONING.md) | Development revisions, release identifiers, save schema/fingerprint compatibility and manual release checklist |
 
 ## Development principles
 

@@ -39,6 +39,16 @@ Use **Locked**, **Provisional**, **Open**, **Deferred** consistently. Do not sil
 6. If the roadmap or docs disagree with current code, record the discrepancy and source links rather than silently rewriting game design to suit the code. Keep "implemented", "tested", "platform-verified" and "feature complete" separate. Never claim a working mobile/Web build without direct evidence.
 7. Handoff between models must be reproducible from GitHub alone: state exact base/main, merged PR links, what actually works, how to run/reproduce, known gaps and the next **approved** dependency-ready work. Avoid repetitive historical narration or invented milestones.
 
+## Changelog, versioning and save compatibility
+
+Read [`docs/VERSIONING.md`](docs/VERSIONING.md) before preparing builds, changing persistence schemas, or claiming any release status. This policy concerns **build identity and reporting**, not permission to invent gameplay scope.
+
+- **Every meaningful player-facing addition/change/fix or compatibility break** belongs in [`CHANGELOG.md`](CHANGELOG.md) under `[Unreleased]` **in the same PR**. Keep entries short, factual, grouped by `Added`, `Changed`, `Fixed`, etc., and link the relevant PR/issue. Do not list every internal refactor, test assertion, or documentation typo. Documentation-only housekeeping normally needs no changelog entry unless it establishes a major contributor-facing policy.
+- **Do not invent versions or tag every PR.** Until a release is explicitly authorized, identify tested development builds by the full Git commit SHA and record the Godot version/platform separately. A planned example like `0.1.0-dev.1` is **not** an existing release. Never create a release/tag, bump an application version or claim platform acceptance without the release authorization and evidence in `docs/VERSIONING.md`.
+- **Application version != save format version != domain schema versions != authored-content fingerprint.** Before altering saves, state exactly which boundaries change and whether old saves load, reject safely, or are migrated. Preserve prior prototype data on incompatibility; never claim a migration that has not been implemented and exercised.
+- On the release-preparation PR only, move the approved `[Unreleased]` entries to a dated version section after verification, keeping a fresh `[Unreleased]` at the top. A GitHub PR merge on its own is not a release.
+- Keep `docs/IMPLEMENTATION-STATUS.md` for current capability maturity and platform evidence; keep `docs/DECISIONS.md` for design authority; keep GitHub Issues/PRs for active progress. The changelog is a **history of meaningful changes**, not a duplicate roadmap or an assertion that entire systems are complete.
+
 ## Repository workflow
 GitHub is the project source of truth. Inspect current main, open PRs, and issues before changes. Make one coherent branch/PR per bounded batch. Never force-push main. No mass issue generation or competing feature branches.
 
