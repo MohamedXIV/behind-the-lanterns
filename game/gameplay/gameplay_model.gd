@@ -14,18 +14,19 @@ var work: WorkRules
 var narrative: NarrativeRules
 var fishing: FishingRules
 var farming: FarmingRules
+var law: LawRules
 
 static func create(data: Dictionary, world_id: String) -> GameplayModel:
-	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming"]): return null
+	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law"]): return null
 	# Match the codec's canonical numeric representation at content ingestion.
 	data = WorldData.normalize(data)
 	for field in ["world", "inventory", "economy", "interactions"]:
 		if not data[field] is Dictionary: return null
-	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming"]:
+	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming", "law"]:
 		if data.has(field) and not data[field] is Dictionary: return null
 	if not WorldData.integer(data.get("start_minute", 0)): return null
 	var content := {"inventory": data.inventory, "economy": data.economy, "interactions": data.interactions}
-	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming"]:
+	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law"]:
 		if data.has(field): content[field] = data[field]
 	var definition := WorldDefinition.create(data.world, content)
 	if definition == null: return null
@@ -61,6 +62,10 @@ static func create(data: Dictionary, world_id: String) -> GameplayModel:
 		model.farming = FarmingRules.create(data.farming, model.inventory, model.interactions)
 		if model.farming == null: return null
 		domains.append(model.farming)
+	if data.has("law"):
+		model.law = LawRules.create(data.law, data.world, model.interactions, model.commerce, model.work)
+		if model.law == null: return null
+		domains.append(model.law)
 	model.session = GameSession.create(definition, domains, world_id)
 	if model.session != null and not model.session.advance_to(data.get("start_minute", 0)).ok: return null
 	return model if model.session != null else null
@@ -120,6 +125,9 @@ func adopt(candidate: GameSession) -> bool:
 
 func enter(intent: String, actor_id: String, portal_id: String) -> OperationResult:
 	return session.transact(intent, func(tx: WorldTransaction) -> String:
+		if law != null:
+			var law_err := law.portal_error(tx.snapshot(), actor_id, portal_id)
+			if not law_err.is_empty(): return law_err
 		if narrative != null:
 			var error := narrative.observe(tx, actor_id, portal_id)
 			if not error.is_empty(): return error
@@ -167,3 +175,33 @@ func harvest_crop(intent: String, actor: String, plot: String) -> OperationResul
 func clear_plot(intent: String, actor: String, plot: String) -> OperationResult:
 	if farming == null: return OperationResult.failure("no_farming")
 	return session.transact(intent, func(tx: WorldTransaction) -> String: return farming.clear(tx, actor, plot))
+
+func confront_guard(intent: String, actor: String, target: String) -> OperationResult:
+	if law == null: return OperationResult.failure("no_law")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.confront_guard(tx, actor, target))
+
+func tamper_restricted(intent: String, actor: String, target: String) -> OperationResult:
+	if law == null: return OperationResult.failure("no_law")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.tamper_restricted(tx, actor, target))
+
+func evade_pursuit(intent: String, actor: String, refuge: String) -> OperationResult:
+	if law == null: return OperationResult.failure("no_law")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.evade_pursuit(tx, actor, refuge))
+
+func persuade_guard(intent: String, actor: String, guard_id: String) -> OperationResult:
+	if law == null: return OperationResult.failure("no_law")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.persuade_guard(tx, actor, guard_id))
+
+func surrender_to_guard(intent: String, actor: String, guard_id: String) -> OperationResult:
+	if law == null: return OperationResult.failure("no_law")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.surrender_to_guard(tx, actor, guard_id))
+
+func pay_fine(intent: String, actor: String, guard_id: String) -> OperationResult:
+	if law == null: return OperationResult.failure("no_law")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.pay_fine(tx, actor, guard_id))
+
+func serve_sentence(intent: String, actor: String) -> OperationResult:
+	if law == null: return OperationResult.failure("no_law")
+	var record := law.status_of(session.snapshot(), actor)
+	if record.status != "detained": return OperationResult.failure("not_detained")
+	return session.transact(intent, func(_tx: WorldTransaction) -> String: return "", record.until_minute)

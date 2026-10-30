@@ -166,6 +166,7 @@ func _draw() -> void:
 		var color := Color("d8b777") if _model.inventory.can_access(_actor, id) else Color("a67d88")
 		if _model.commerce.is_shop(id): color = Color("9bbf91")
 		if id in _model.crafting.station_ids(): color = Color("d49b61")
+		if _model.law != null and _model.law.is_guard(id): color = Color("7da4c9")
 		var npc := _model.npcs.projection(id, snapshot.minute)
 		if not npc.is_empty() and not npc.available: color = Color("6e8582")
 		draw_ellipse_shadow(at)
@@ -200,6 +201,7 @@ func _draw() -> void:
 			if planted.is_empty(): detail = "%s · %s" % [_model.farming.plots()[id].soil.capitalize(), "Use to plant" if _model.farming.can_access(_actor, id) else "Private plot"]
 			else: detail = "%s · %s" % [planted.label, "Ripe · Harvest" if planted.ripe else "Water (%d/%d)" % [planted.waterings_done, planted.waterings_needed] if planted.can_water else "Growing (%d/%d)" % [planted.waterings_done, planted.waterings_needed]]
 		if _model.interactions.is_portal(id): detail = "Door · Use nearby"
+		if _model.law != null and _model.law.is_guard(id): detail = (npc.activity + " · " if not npc.is_empty() else "") + "Watch · Use nearby"
 		var job := _model.crafting.active_job(snapshot, _actor)
 		if not job.is_empty() and job.station_id == id: detail = "%s · %d%%" % [job.status, int(100 * job.elapsed / _model.crafting.recipes()[job.recipe_id].duration_seconds)]
 		draw_string(font, at + Vector2(-80, 42), detail, HORIZONTAL_ALIGNMENT_CENTER, 160, 14, Color("b4c7c3"))

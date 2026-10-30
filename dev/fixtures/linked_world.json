@@ -5,7 +5,8 @@
       "region.remote",
       "region.workshop",
       "region.alcove",
-      "region.river"
+      "region.river",
+      "region.watchhouse"
     ],
     "definitions": [
       "actor.resident",
@@ -26,7 +27,9 @@
       "item.fish_meal",
       "object.plot",
       "item.lotus_seed",
-      "item.river_lotus"
+      "item.river_lotus",
+      "actor.guard",
+      "actor.detainee"
     ],
     "entities": {
       "a:player": {
@@ -116,6 +119,22 @@
       "a:river-bed": {
         "definition_id": "object.plot",
         "region_id": "region.river"
+      },
+      "a:gate-guard": {
+        "definition_id": "actor.guard",
+        "region_id": "region.playground"
+      },
+      "a:watch-warden": {
+        "definition_id": "actor.guard",
+        "region_id": "region.watchhouse"
+      },
+      "a:detainee": {
+        "definition_id": "actor.detainee",
+        "region_id": "region.watchhouse"
+      },
+      "a:watchhouse-exit": {
+        "definition_id": "object.door",
+        "region_id": "region.watchhouse"
       }
     },
     "facts": {
@@ -379,6 +398,22 @@
       "a:river-bed": {
         "x": 480,
         "y": 320
+      },
+      "a:gate-guard": {
+        "x": 480,
+        "y": 380
+      },
+      "a:watch-warden": {
+        "x": 360,
+        "y": 220
+      },
+      "a:detainee": {
+        "x": 520,
+        "y": 220
+      },
+      "a:watchhouse-exit": {
+        "x": 100,
+        "y": 330
       }
     },
     "geometry": {
@@ -418,6 +453,10 @@
             "height": 180
           }
         ]
+      },
+      "region.watchhouse": {
+        "radius": 10,
+        "obstacles": []
       }
     },
     "portals": {
@@ -450,6 +489,11 @@
         "region_id": "region.playground",
         "x": 700,
         "y": 300
+      },
+      "a:watchhouse-exit": {
+        "region_id": "region.playground",
+        "x": 480,
+        "y": 340
       }
     }
   },
@@ -478,13 +522,18 @@
       "a:garden-plot": "Courtyard garden plot",
       "a:sandy-plot": "Sandy courtyard bed",
       "a:merchant-plot": "Merchant's private planter",
-      "a:river-bed": "Riverbank silt bed"
+      "a:river-bed": "Riverbank silt bed",
+      "a:gate-guard": "Courtyard watchman",
+      "a:watch-warden": "Watchhouse warden",
+      "a:detainee": "Detained porter",
+      "a:watchhouse-exit": "Watchhouse door"
     },
     "region_labels": {
       "region.playground": "Courtyard",
       "region.workshop": "Workshop",
       "region.alcove": "Quiet alcove",
-      "region.river": "Riverbank"
+      "region.river": "Riverbank",
+      "region.watchhouse": "Watchhouse"
     },
     "default_item": "item.dates"
   },
@@ -543,6 +592,32 @@
         {
           "start": 1080,
           "x": 620,
+          "y": 380,
+          "available": false,
+          "activity": "Off duty"
+        }
+      ]
+    },
+    "a:gate-guard": {
+      "period_minutes": 1440,
+      "slots": [
+        {
+          "start": 0,
+          "x": 480,
+          "y": 380,
+          "available": false,
+          "activity": "Off duty"
+        },
+        {
+          "start": 360,
+          "x": 480,
+          "y": 380,
+          "available": true,
+          "activity": "Keeping watch"
+        },
+        {
+          "start": 1320,
+          "x": 480,
           "y": 380,
           "available": false,
           "activity": "Off duty"
@@ -813,6 +888,25 @@
             "id": "work.favor"
           }
         }
+      },
+      "a:detainee": {
+        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"^The detained porter leans against the cool watchhouse wall. \\\"No blades here, friend — the watch just locks the latch until the fine is paid or the hours pass.\\\"\",\"\\n\",\"ev\",\"str\",\"^Ask what rumors pass through the watchhouse.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},\"ev\",\"str\",\"^Leave him to rest.\",\"/str\",\"/ev\",{\"*\":\".^.c-1\",\"flg\":4},{\"c-0\":[\"\\n\",\"ev\",{\"VAR?\":\"found_passage\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"You already walked the workshop side passage yourself? Then you know the rumor is older than the lock on this door.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"A boatman in the holding room swore a side passage beyond the workshop leads to a singing spring.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",\"#\",\"^command:passage_rumor\",\"/#\",\"#\",\"^command:water_rumor\",\"/#\",{\"->\":\"farewell\"},null],\"c-1\":[\"\\n\",\"end\",null]}],null],\"farewell\":[[\"ev\",\"str\",\"^Wish him an early release.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"found_passage\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
+        "queries": {
+          "found_passage": {
+            "kind": "confirmed",
+            "id": "claim.passage"
+          }
+        },
+        "actions": {
+          "passage_rumor": {
+            "kind": "hear",
+            "id": "claim.passage"
+          },
+          "water_rumor": {
+            "kind": "hear",
+            "id": "claim.water"
+          }
+        }
       }
     }
   },
@@ -925,6 +1019,59 @@
         "required_waterings": 1,
         "max_watering_reduction": 0,
         "watering_interval_minutes": 180
+      }
+    }
+  },
+  "law": {
+    "treasury_id": "a:merchant",
+    "cooldown_minutes": 180,
+    "base_fine": 4,
+    "repeat_fine_step": 2,
+    "max_fine": 10,
+    "base_sentence_minutes": 360,
+    "repeat_sentence_step": 180,
+    "max_sentence_minutes": 720,
+    "jail": {
+      "region_id": "region.watchhouse",
+      "x": 220,
+      "y": 220,
+      "exit_portal": "a:watchhouse-exit"
+    },
+    "release": {
+      "region_id": "region.playground",
+      "x": 480,
+      "y": 340
+    },
+    "guards": {
+      "a:gate-guard": {
+        "label": "Courtyard watchman",
+        "sight_range": 340,
+        "voucher_jobs": [
+          "work.provisions"
+        ]
+      },
+      "a:watch-warden": {
+        "label": "Watchhouse warden",
+        "sight_range": 300,
+        "voucher_jobs": []
+      }
+    },
+    "restricted_targets": {
+      "a:private": {
+        "offense": "trespass_goods",
+        "label": "Tampering with private merchant chest"
+      },
+      "a:merchant-plot": {
+        "offense": "trespass_property",
+        "label": "Trespassing in private planter"
+      }
+    },
+    "refuges": {
+      "a:reed-bank": {
+        "label": "Concealing river reeds"
+      },
+      "a:dry-basin": {
+        "label": "Shadowed stone alcove"
       }
     }
   }
