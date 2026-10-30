@@ -10,6 +10,7 @@ var _choices: VBoxContainer
 var _journal: Label
 var _message: Label
 var _speaker: Label
+var _memory: Label
 
 func configure(model: GameplayModel, actor: String, prepare: Callable) -> void:
 	_model = model
@@ -29,6 +30,10 @@ func configure(model: GameplayModel, actor: String, prepare: Callable) -> void:
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text.custom_minimum_size.x = 300
 	add_child(_text)
+	_memory = Label.new()
+	_memory.name = "SharedCommitments"
+	_memory.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(_memory)
 	_choices = VBoxContainer.new()
 	add_child(_choices)
 	_message = Label.new()
@@ -73,6 +78,7 @@ func refresh() -> void:
 		return
 	_npc = current.npc_id
 	_speaker.text = "Talking with " + _npc.trim_prefix("a:").capitalize()
+	_memory.text = _model.work.memories(_model.session.snapshot(), _actor, _npc)
 	_text.text = current.frame.text
 	for index in current.frame.choices.size():
 		var button := Button.new()

@@ -13,7 +13,7 @@ static func create(config: Dictionary, inventory: InventoryRules, commerce: Comm
 	if not WorldData.valid(config): return null
 	for id in config:
 		var job: Variant = config[id]
-		if not WorldData.id(id) or not WorldData.keys(job, ["label", "giver_id", "recipient_id", "requirements", "reward", "deadline_minutes"]): return null
+		if not WorldData.id(id) or not WorldData.keys(job, ["label", "giver_id", "recipient_id", "requirements", "reward", "deadline_minutes"], ["requires_completed"]): return null
 		if not job.label is String or not job.giver_id is String or not job.recipient_id is String: return null
 		if not commerce.has_wallet(job.giver_id) or inventory.container_definition(job.recipient_id).is_empty(): return null
 		if not job.giver_id in interactions.target_ids() or not job.recipient_id in interactions.target_ids(): return null
@@ -21,6 +21,14 @@ static func create(config: Dictionary, inventory: InventoryRules, commerce: Comm
 		if not job.requirements is Dictionary or job.requirements.is_empty(): return null
 		for item in job.requirements:
 			if inventory.item_definition(item).is_empty() or not WorldData.integer(job.requirements[item], 1): return null
+	for id in config:
+		var chain: Array = [id]
+		var prerequisite: Variant = config[id].get("requires_completed", "")
+		while prerequisite != "":
+			if not prerequisite is String or not config.has(prerequisite) or prerequisite in chain: return null
+			if config[prerequisite].giver_id != config[id].giver_id: return null
+			chain.append(prerequisite)
+			prerequisite = config[prerequisite].get("requires_completed", "")
 	var rules := WorkRules.new()
 	rules._definitions = config.duplicate(true)
 	rules._inventory = inventory
@@ -56,7 +64,8 @@ func accept(tx: WorldTransaction, actor_id: String, definition_id: String, job_i
 	var error := _interactions.reach_error(tx, actor_id, definition.giver_id)
 	if not error.is_empty(): return error
 	if not _interactions.available(definition.giver_id, tx.now()): return "person_unavailable"
-	if not job_for(tx.snapshot(), actor_id, definition_id).is_empty(): return "job_already_taken"
+	error = offer_error(tx.snapshot(), actor_id, definition_id)
+	if not error.is_empty(): return error
 	if definition.deadline_minutes > WorldData.MAX_COUNTER - tx.now(): return "job_deadline_overflow"
 	var state := tx.read_domain(DOMAIN)
 	if state.jobs.has(job_id): return "duplicate_job"
@@ -134,6 +143,8 @@ func validate(state: Dictionary, snapshot: Dictionary) -> String:
 		if seen.has(unique): return "duplicate_work_offer"
 		seen[unique] = true
 		var definition: Dictionary = _definitions[job.definition_id]
+		var prerequisite: String = definition.get("requires_completed", "")
+		if not prerequisite.is_empty() and job_for(snapshot, job.actor_id, prerequisite).get("status") != "completed": return "work_prerequisite"
 		if not WorldData.integer(job.accepted_at, 0, snapshot.minute) or not WorldData.integer(job.deadline, 1): return "work_time"
 		if job.deadline != job.accepted_at + definition.deadline_minutes: return "work_deadline"
 		if not job.status in ["accepted", "completed", "expired", "cancelled"]: return "work_status"
@@ -156,3 +167,23 @@ func validate(state: Dictionary, snapshot: Dictionary) -> String:
 		var hold: Variant = money.holds[id]
 		if hold is Dictionary and hold.get("owner_domain") is String and hold.owner_domain == DOMAIN and not state.jobs.has(id): return "orphan_work_payment"
 	return ""
+
+func offer_error(snapshot: Dictionary, actor_id: String, definition_id: String) -> String:
+	if not _definitions.has(definition_id): return "unknown_job"
+	if not job_for(snapshot, actor_id, definition_id).is_empty(): return "job_already_taken"
+	var prerequisite: String = _definitions[definition_id].get("requires_completed", "")
+	if not prerequisite.is_empty() and job_for(snapshot, actor_id, prerequisite).get("status") != "completed": return "prior_help_required"
+	return ""
+
+func memories(snapshot: Dictionary, actor_id: String, npc_id: String) -> String:
+	var lines: PackedStringArray = []
+	var ids := _definitions.keys()
+	ids.sort()
+	for id in ids:
+		var definition: Dictionary = _definitions[id]
+		if not npc_id in [definition.giver_id, definition.recipient_id]: continue
+		var job := job_for(snapshot, actor_id, id)
+		if job.is_empty(): continue
+		var description: String = {"completed": "Kept commitment", "expired": "Missed deadline", "cancelled": "Called off", "accepted": "Promised"}[job.status]
+		lines.append(description + ": " + definition.label)
+	return "No shared commitments yet." if lines.is_empty() else "\n".join(lines)
