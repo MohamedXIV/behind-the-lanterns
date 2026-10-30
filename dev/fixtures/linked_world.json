@@ -440,6 +440,17 @@
       },
       "reward": 6,
       "deadline_minutes": 180
+    },
+    "work.favor": {
+      "label": "A trusted grain favor",
+      "giver_id": "a:merchant",
+      "recipient_id": "a:courier",
+      "requirements": {
+        "item.grain": 4
+      },
+      "reward": 8,
+      "deadline_minutes": 240,
+      "requires_completed": "work.provisions"
     }
   },
   "narrative": {
@@ -460,7 +471,7 @@
     },
     "conversations": {
       "a:merchant": {
-        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"ev\",{\"VAR?\":\"reported_basin\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^The merchant turns a cracked cup in his hands. \\\"You told me the spring has fallen silent. I should stop promising thirsty travelers a drink.\\\"\",\"\\n\",{\"->\":\".^.^.^.5\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^The merchant shades his stall with a woven cloth. \\\"A little honest work leaves the evening free for wonders.\\\"\",\"\\n\",{\"->\":\".^.^.^.5\"},null]}],\"nop\",\"\\n\",\"ev\",\"str\",\"^Ask about the old workshop.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},\"ev\",\"str\",\"^Ask for a small delivery.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"!\",{\"VAR?\":\"finished_delivery\"},\"!\",\"&&\",\"/ev\",{\"*\":\".^.c-1\",\"flg\":5},\"ev\",\"str\",\"^Discuss the provisions delivery.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"/ev\",{\"*\":\".^.c-2\",\"flg\":5},\"ev\",\"str\",\"^Mention the completed delivery.\",\"/str\",{\"VAR?\":\"finished_delivery\"},\"/ev\",{\"*\":\".^.c-3\",\"flg\":5},\"ev\",\"str\",\"^Leave the merchant to his work.\",\"/str\",\"/ev\",{\"*\":\".^.c-4\",\"flg\":4},\"ev\",\"str\",\"^Report the dry basin you inspected.\",\"/str\",{\"VAR?\":\"found_dry_basin\"},{\"VAR?\":\"reported_basin\"},\"!\",\"&&\",\"/ev\",{\"*\":\".^.c-5\",\"flg\":5},{\"c-0\":[\"\\n\",\"ev\",{\"VAR?\":\"found_passage\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"You found the side passage yourself? Then you know more than the men who sell directions to it.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"They say a narrow passage beyond the workshop leads to a spring that sings after sunset. I heard it from a boatman; I have never tasted its water.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",\"#\",\"^command:passage_rumor\",\"/#\",\"ev\",{\"VAR?\":\"reported_basin\"},\"!\",\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"#\",\"^command:water_rumor\",\"/#\",{\"->\":\".^.^.^.16\"},null]}],\"nop\",\"\\n\",{\"->\":\"farewell\"},null],\"c-1\":[\"\\n\",\"^\\\"The courier needs provisions. Bring the agreed goods before the deadline; the payment is set aside.\\\"\",\"\\n\",\"#\",\"^command:accept_provisions\",\"/#\",{\"->\":\"farewell\"},null],\"c-2\":[\"\\n\",\"^\\\"Find the courier during working hours. The workshop bench is yours to use, but a deadline waits for no oven.\\\"\",\"\\n\",{\"->\":\"farewell\"},null],\"c-3\":[\"\\n\",\"^\\\"The courier spoke well of you. Reliable hands are worth more than loud promises.\\\"\",\"\\n\",{\"->\":\"farewell\"},null],\"c-4\":[\"\\n\",\"end\",null],\"c-5\":[\"\\n\",\"^\\\"Dust in the channel, you say? Then I owe that boatman a question. I will tell travelers to carry their own water. Thank you for checking instead of repeating me.\\\"\",\"\\n\",\"#\",\"^command:report_basin\",\"/#\",{\"->\":\"farewell\"},null]}],null],\"farewell\":[[\"ev\",\"str\",\"^Thank him and leave.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"reported_basin\"},false,{\"VAR=\":\"found_passage\"},false,{\"VAR=\":\"found_dry_basin\"},false,{\"VAR=\":\"has_delivery\"},false,{\"VAR=\":\"finished_delivery\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
+        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"ev\",{\"VAR?\":\"missed_delivery\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"ev\",{\"VAR?\":\"acknowledged_delivery\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"^ \\\"We have spoken about the missed delivery. Let us leave the account honest.\\\"\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"^\\\"I remember waiting for the provisions. What happened?\\\"\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",{\"->\":\".^.^.^.4\"},null]}],\"nop\",\"\\n\",\"ev\",{\"VAR?\":\"cancelled_delivery\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"The provisions delivery was called off. There is still ordinary work and conversation to be had.\\\"\",\"\\n\",{\"->\":\".^.^.^.10\"},null]}],\"nop\",\"\\n\",\"ev\",{\"VAR?\":\"reported_basin\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^The merchant turns a cracked cup in his hands. \\\"You told me the spring has fallen silent. I should stop promising thirsty travelers a drink.\\\"\",\"\\n\",{\"->\":\".^.^.^.17\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^The merchant shades his stall with a woven cloth. \\\"A little honest work leaves the evening free for wonders.\\\"\",\"\\n\",{\"->\":\".^.^.^.17\"},null]}],\"nop\",\"\\n\",\"ev\",\"str\",\"^Ask about the old workshop.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},\"ev\",\"str\",\"^Ask for a small delivery.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"!\",{\"VAR?\":\"finished_delivery\"},\"!\",\"&&\",{\"VAR?\":\"missed_delivery\"},\"!\",\"&&\",{\"VAR?\":\"cancelled_delivery\"},\"!\",\"&&\",\"/ev\",{\"*\":\".^.c-1\",\"flg\":5},\"ev\",\"str\",\"^Discuss the provisions delivery.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"/ev\",{\"*\":\".^.c-2\",\"flg\":5},\"ev\",\"str\",\"^Mention the completed delivery.\",\"/str\",{\"VAR?\":\"finished_delivery\"},\"/ev\",{\"*\":\".^.c-3\",\"flg\":5},\"ev\",\"str\",\"^Leave the merchant to his work.\",\"/str\",\"/ev\",{\"*\":\".^.c-4\",\"flg\":4},\"ev\",\"str\",\"^Report the dry basin you inspected.\",\"/str\",{\"VAR?\":\"found_dry_basin\"},{\"VAR?\":\"reported_basin\"},\"!\",\"&&\",\"/ev\",{\"*\":\".^.c-5\",\"flg\":5},\"ev\",\"str\",\"^Tell him you cannot keep the delivery commitment.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"/ev\",{\"*\":\".^.c-6\",\"flg\":5},\"ev\",\"str\",\"^Acknowledge the broken delivery commitment.\",\"/str\",{\"VAR?\":\"missed_delivery\"},{\"VAR?\":\"cancelled_delivery\"},\"||\",{\"VAR?\":\"acknowledged_delivery\"},\"!\",\"&&\",\"/ev\",{\"*\":\".^.c-7\",\"flg\":5},\"ev\",\"str\",\"^Ask if your reliable help has earned another small favor.\",\"/str\",{\"VAR?\":\"eligible_favor\"},\"/ev\",{\"*\":\".^.c-8\",\"flg\":5},\"ev\",\"str\",\"^Mention the grain favor.\",\"/str\",{\"VAR?\":\"finished_favor\"},\"/ev\",{\"*\":\".^.c-9\",\"flg\":5},{\"c-0\":[\"\\n\",\"ev\",{\"VAR?\":\"found_passage\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"You found the side passage yourself? Then you know more than the men who sell directions to it.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"They say a narrow passage beyond the workshop leads to a spring that sings after sunset. I heard it from a boatman; I have never tasted its water.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",\"#\",\"^command:passage_rumor\",\"/#\",\"ev\",{\"VAR?\":\"reported_basin\"},\"!\",\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"#\",\"^command:water_rumor\",\"/#\",{\"->\":\".^.^.^.16\"},null]}],\"nop\",\"\\n\",{\"->\":\"farewell\"},null],\"c-1\":[\"\\n\",\"^\\\"The courier needs provisions. Bring the agreed goods before the deadline; the payment is set aside.\\\"\",\"\\n\",\"#\",\"^command:accept_provisions\",\"/#\",{\"->\":\"farewell\"},null],\"c-2\":[\"\\n\",\"^\\\"Find the courier during working hours. The workshop bench is yours to use, but a deadline waits for no oven.\\\"\",\"\\n\",{\"->\":\"farewell\"},null],\"c-3\":[\"\\n\",\"^\\\"The courier spoke well of you. Reliable hands are worth more than loud promises.\\\"\",\"\\n\",{\"->\":\"farewell\"},null],\"c-4\":[\"\\n\",\"end\",null],\"c-5\":[\"\\n\",\"^\\\"Dust in the channel, you say? Then I owe that boatman a question. I will tell travelers to carry their own water. Thank you for checking instead of repeating me.\\\"\",\"\\n\",\"#\",\"^command:report_basin\",\"/#\",{\"->\":\"farewell\"},null],\"c-6\":[\"\\n\",\"^\\\"Better to warn me than leave the courier waiting. I will release the reserved payment. We can still trade as neighbors.\\\"\",\"\\n\",\"#\",\"^command:cancel_provisions\",\"/#\",{\"->\":\"farewell\"},null],\"c-7\":[\"\\n\",\"^\\\"Thank you for saying so. I remember the missed parcel, but an honest word matters. There is no fine and no door closed to you.\\\"\",\"\\n\",\"#\",\"^command:acknowledge_provisions\",\"/#\",{\"->\":\"farewell\"},null],\"c-8\":[\"\\n\",\"^\\\"You kept your word on the provisions. Could you take four measures of grain to the courier as well? This is optional; the usual trade remains open.\\\"\",\"\\n\",\"#\",\"^command:accept_favor\",\"/#\",{\"->\":\"farewell\"},null],\"c-9\":[\"\\n\",\"^\\\"Two commitments kept. I know whose hands I can trust with a small errand.\\\"\",\"\\n\",{\"->\":\"farewell\"},null]}],null],\"farewell\":[[\"ev\",\"str\",\"^Thank him and leave.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"missed_delivery\"},false,{\"VAR=\":\"cancelled_delivery\"},false,{\"VAR=\":\"acknowledged_delivery\"},false,{\"VAR=\":\"eligible_favor\"},false,{\"VAR=\":\"has_favor\"},false,{\"VAR=\":\"finished_favor\"},false,{\"VAR=\":\"reported_basin\"},false,{\"VAR=\":\"found_passage\"},false,{\"VAR=\":\"found_dry_basin\"},false,{\"VAR=\":\"has_delivery\"},false,{\"VAR=\":\"finished_delivery\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
         "queries": {
           "found_passage": {
             "kind": "confirmed",
@@ -481,6 +492,30 @@
           "reported_basin": {
             "kind": "reported",
             "id": "claim.dry_basin"
+          },
+          "missed_delivery": {
+            "kind": "expired",
+            "id": "work.provisions"
+          },
+          "cancelled_delivery": {
+            "kind": "cancelled",
+            "id": "work.provisions"
+          },
+          "acknowledged_delivery": {
+            "kind": "acknowledged",
+            "id": "work.provisions"
+          },
+          "eligible_favor": {
+            "kind": "eligible",
+            "id": "work.favor"
+          },
+          "has_favor": {
+            "kind": "accepted",
+            "id": "work.favor"
+          },
+          "finished_favor": {
+            "kind": "completed",
+            "id": "work.favor"
           }
         },
         "actions": {
@@ -499,11 +534,23 @@
           "report_basin": {
             "kind": "report",
             "id": "claim.dry_basin"
+          },
+          "acknowledge_provisions": {
+            "kind": "acknowledge",
+            "id": "work.provisions"
+          },
+          "cancel_provisions": {
+            "kind": "cancel_job",
+            "id": "work.provisions"
+          },
+          "accept_favor": {
+            "kind": "accept_job",
+            "id": "work.favor"
           }
         }
       },
       "a:courier": {
-        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"ev\",{\"VAR?\":\"finished_delivery\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^The courier tightens the straps on the provision pack. \\\"Safe in my hands. Your payment has already been released.\\\"\",\"\\n\",{\"->\":\".^.^.^.5\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^The courier rests beside a folded sail. \\\"A story travels quickly. A parcel still needs someone to carry it.\\\"\",\"\\n\",{\"->\":\".^.^.^.5\"},null]}],\"nop\",\"\\n\",\"ev\",\"str\",\"^Hand over the agreed provisions.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"/ev\",{\"*\":\".^.c-0\",\"flg\":5},\"ev\",\"str\",\"^Discuss the dry basin beyond the workshop.\",\"/str\",{\"VAR?\":\"found_dry_basin\"},\"/ev\",{\"*\":\".^.c-1\",\"flg\":5},\"ev\",\"str\",\"^Ask about the courier's day.\",\"/str\",\"/ev\",{\"*\":\".^.c-2\",\"flg\":4},\"ev\",\"str\",\"^Say farewell.\",\"/str\",\"/ev\",{\"*\":\".^.c-3\",\"flg\":4},{\"c-0\":[\"\\n\",\"^\\\"Two packs, just as promised. I can leave before the shade moves. Here is your agreed payment.\\\"\",\"\\n\",\"#\",\"^command:deliver_provisions\",\"/#\",{\"->\":\"goodbye\"},null],\"c-1\":[\"\\n\",\"ev\",{\"VAR?\":\"reported_basin\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"Good that you warned the merchant. We can carry water rather than chase a song.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"Then tell the merchant what you saw. He repeats that boatman's story to everyone who asks.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",{\"->\":\"goodbye\"},null],\"c-2\":[\"\\n\",\"^\\\"Provisions before the afternoon road; a little shade afterward. Ask the merchant if you want paid work.\\\"\",\"\\n\",{\"->\":\"goodbye\"},null],\"c-3\":[\"\\n\",\"end\",null]}],null],\"goodbye\":[[\"ev\",\"str\",\"^Leave the courier to the road.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"found_dry_basin\"},false,{\"VAR=\":\"reported_basin\"},false,{\"VAR=\":\"has_delivery\"},false,{\"VAR=\":\"finished_delivery\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
+        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"ev\",{\"VAR?\":\"missed_delivery\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"ev\",{\"VAR?\":\"acknowledged_delivery\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"^ \\\"We have spoken about the missed delivery. Let us leave the account honest.\\\"\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"^\\\"I remember waiting for the provisions. What happened?\\\"\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",{\"->\":\".^.^.^.4\"},null]}],\"nop\",\"\\n\",\"ev\",{\"VAR?\":\"cancelled_delivery\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"The provisions delivery was called off. There is still ordinary work and conversation to be had.\\\"\",\"\\n\",{\"->\":\".^.^.^.10\"},null]}],\"nop\",\"\\n\",\"ev\",{\"VAR?\":\"finished_delivery\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^The courier tightens the straps on the provision pack. \\\"Safe in my hands. Your payment has already been released.\\\"\",\"\\n\",{\"->\":\".^.^.^.17\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^The courier rests beside a folded sail. \\\"A story travels quickly. A parcel still needs someone to carry it.\\\"\",\"\\n\",{\"->\":\".^.^.^.17\"},null]}],\"nop\",\"\\n\",\"ev\",\"str\",\"^Hand over the agreed provisions.\",\"/str\",{\"VAR?\":\"has_delivery\"},\"/ev\",{\"*\":\".^.c-0\",\"flg\":5},\"ev\",\"str\",\"^Discuss the dry basin beyond the workshop.\",\"/str\",{\"VAR?\":\"found_dry_basin\"},\"/ev\",{\"*\":\".^.c-1\",\"flg\":5},\"ev\",\"str\",\"^Ask about the courier's day.\",\"/str\",\"/ev\",{\"*\":\".^.c-2\",\"flg\":4},\"ev\",\"str\",\"^Say farewell.\",\"/str\",\"/ev\",{\"*\":\".^.c-3\",\"flg\":4},\"ev\",\"str\",\"^Acknowledge the parcel that never came.\",\"/str\",{\"VAR?\":\"missed_delivery\"},{\"VAR?\":\"cancelled_delivery\"},\"||\",{\"VAR?\":\"acknowledged_delivery\"},\"!\",\"&&\",\"/ev\",{\"*\":\".^.c-4\",\"flg\":5},\"ev\",\"str\",\"^Hand over the grain favor.\",\"/str\",{\"VAR?\":\"has_favor\"},\"/ev\",{\"*\":\".^.c-5\",\"flg\":5},{\"c-0\":[\"\\n\",\"^\\\"Two packs, just as promised. I can leave before the shade moves. Here is your agreed payment.\\\"\",\"\\n\",\"#\",\"^command:deliver_provisions\",\"/#\",{\"->\":\"goodbye\"},null],\"c-1\":[\"\\n\",\"ev\",{\"VAR?\":\"reported_basin\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"Good that you warned the merchant. We can carry water rather than chase a song.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"Then tell the merchant what you saw. He repeats that boatman's story to everyone who asks.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",{\"->\":\"goodbye\"},null],\"c-2\":[\"\\n\",\"^\\\"Provisions before the afternoon road; a little shade afterward. Ask the merchant if you want paid work.\\\"\",\"\\n\",{\"->\":\"goodbye\"},null],\"c-3\":[\"\\n\",\"end\",null],\"c-4\":[\"\\n\",\"^\\\"I had to leave without it. Thank you for facing me about it. We can share the shade without pretending the parcel arrived.\\\"\",\"\\n\",\"#\",\"^command:acknowledge_provisions\",\"/#\",{\"->\":\"goodbye\"},null],\"c-5\":[\"\\n\",\"^\\\"Four measures, all here. You have helped twice now. The merchant's payment is yours.\\\"\",\"\\n\",\"#\",\"^command:deliver_favor\",\"/#\",{\"->\":\"goodbye\"},null]}],null],\"goodbye\":[[\"ev\",\"str\",\"^Leave the courier to the road.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"missed_delivery\"},false,{\"VAR=\":\"cancelled_delivery\"},false,{\"VAR=\":\"acknowledged_delivery\"},false,{\"VAR=\":\"eligible_favor\"},false,{\"VAR=\":\"has_favor\"},false,{\"VAR=\":\"finished_favor\"},false,{\"VAR=\":\"found_dry_basin\"},false,{\"VAR=\":\"reported_basin\"},false,{\"VAR=\":\"has_delivery\"},false,{\"VAR=\":\"finished_delivery\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
         "queries": {
           "found_dry_basin": {
             "kind": "confirmed",
@@ -520,12 +567,44 @@
           "reported_basin": {
             "kind": "reported",
             "id": "claim.dry_basin"
+          },
+          "missed_delivery": {
+            "kind": "expired",
+            "id": "work.provisions"
+          },
+          "cancelled_delivery": {
+            "kind": "cancelled",
+            "id": "work.provisions"
+          },
+          "acknowledged_delivery": {
+            "kind": "acknowledged",
+            "id": "work.provisions"
+          },
+          "eligible_favor": {
+            "kind": "eligible",
+            "id": "work.favor"
+          },
+          "has_favor": {
+            "kind": "accepted",
+            "id": "work.favor"
+          },
+          "finished_favor": {
+            "kind": "completed",
+            "id": "work.favor"
           }
         },
         "actions": {
           "deliver_provisions": {
             "kind": "deliver_job",
             "id": "work.provisions"
+          },
+          "acknowledge_provisions": {
+            "kind": "acknowledge",
+            "id": "work.provisions"
+          },
+          "deliver_favor": {
+            "kind": "deliver_job",
+            "id": "work.favor"
           }
         }
       }

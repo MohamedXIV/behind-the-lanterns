@@ -57,6 +57,8 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 
 | D-043 | Provisional | #5/#14: reporting requires inspected evidence and records whom the player told; NPC dialogue can request existing atomic delivery. Reporting does not rewrite static facts or introduce a gossip/quest simulation. Conversation restart refreshes context and exact cursor checks reject stale UI choices. |
 
+| D-044 | Provisional | #14: NPC shared commitment memory derives from Work outcomes; explicit acknowledgement is recorded per affected person without erasing failure or granting rewards. Kept work may enable an optional same-giver favor. No relationship score, mandatory progression or town-wide psychology is implied. |
+
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.
 2. When a conflict arises, update this register and the affected GDD together.

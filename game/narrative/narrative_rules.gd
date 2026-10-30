@@ -37,7 +37,7 @@ static func create(config: Dictionary, world: Dictionary, interactions: Interact
 				if not query.id in world.claims: return null
 			elif query.kind == "reported":
 				if not query.id in world.claims: return null
-			elif query.kind in ["accepted", "completed"]:
+			elif query.kind in ["accepted", "completed", "expired", "cancelled", "acknowledged", "eligible"]:
 				if not work.definitions().has(query.id): return null
 			else: return null
 		for action in conversation.actions.values():
@@ -46,7 +46,7 @@ static func create(config: Dictionary, world: Dictionary, interactions: Interact
 				if not action.id in world.claims: return null
 			elif action.kind == "report":
 				if not action.id in world.claims or not config.journal.has(action.id): return null
-			elif action.kind in ["accept_job", "deliver_job"]:
+			elif action.kind in ["accept_job", "deliver_job", "cancel_job", "acknowledge"]:
 				if not work.definitions().has(action.id): return null
 			else: return null
 	var rules := NarrativeRules.new()
@@ -59,10 +59,10 @@ func domain_id() -> String:
 	return DOMAIN
 
 func schema_version() -> int:
-	return 2
+	return 3
 
 func initial_state() -> Dictionary:
-	return {"conversations": {}, "reports": {}}
+	return {"conversations": {}, "reports": {}, "acknowledgements": {}}
 
 func can_talk(npc_id: String) -> bool:
 	return _config.conversations.has(npc_id)
@@ -82,7 +82,7 @@ func observe(tx: WorldTransaction, actor_id: String, target_id: String) -> Strin
 	if not error.is_empty(): return error
 	return tx.discover(_config.discoveries[target_id].claim_id, "confirmed")
 
-func _context(snapshot: Dictionary, actor_id: String, definition: Dictionary) -> Dictionary:
+func _context(snapshot: Dictionary, actor_id: String, definition: Dictionary, npc_id: String) -> Dictionary:
 	var result: Dictionary = {}
 	for key in definition.queries:
 		var query: Dictionary = definition.queries[key]
@@ -90,6 +90,10 @@ func _context(snapshot: Dictionary, actor_id: String, definition: Dictionary) ->
 			result[key] = snapshot.knowledge.get(query.id, "") == "confirmed" if query.kind == "confirmed" else snapshot.knowledge.has(query.id)
 		elif query.kind == "reported":
 			result[key] = snapshot.domains[DOMAIN].reports.get(actor_id, {}).has(query.id)
+		elif query.kind == "acknowledged":
+			result[key] = snapshot.domains[DOMAIN].acknowledgements.get(actor_id, {}).get(query.id, {}).has(npc_id)
+		elif query.kind == "eligible":
+			result[key] = _work.offer_error(snapshot, actor_id, query.id).is_empty()
 		else:
 			var job := _work.job_for(snapshot, actor_id, query.id)
 			result[key] = job.get("status", "") == query.kind
@@ -111,7 +115,7 @@ func talk(tx: WorldTransaction, actor_id: String, npc_id: String, choice: Varian
 		epoch = previous.epoch
 	elif typeof(choice) != TYPE_INT: return "invalid_choice"
 	var definition: Dictionary = _config.conversations[npc_id]
-	turns.append({"choice": choice, "context": _context(tx.snapshot(), actor_id, definition)})
+	turns.append({"choice": choice, "context": _context(tx.snapshot(), actor_id, definition, npc_id)})
 	var frame := InkDialogue.render(definition.compiled, turns)
 	if frame.is_empty(): return "invalid_story_choice"
 	for action_id in frame.actions:
@@ -122,6 +126,14 @@ func talk(tx: WorldTransaction, actor_id: String, npc_id: String, choice: Varian
 			if tx.snapshot().knowledge.get(action.id, "") != "confirmed": return "evidence_required"
 			if not state.reports.has(actor_id): state.reports[actor_id] = {}
 			state.reports[actor_id][action.id] = npc_id
+		elif action.kind == "acknowledge":
+			var job := _work.job_for(tx.snapshot(), actor_id, action.id)
+			var work_definition: Dictionary = _work.definitions()[action.id]
+			if not npc_id in [work_definition.giver_id, work_definition.recipient_id] or not job.get("status", "") in ["expired", "cancelled"]: return "no_broken_commitment"
+			if not state.acknowledgements.has(actor_id): state.acknowledgements[actor_id] = {}
+			if not state.acknowledgements[actor_id].has(action.id): state.acknowledgements[actor_id][action.id] = {}
+			state.acknowledgements[actor_id][action.id][npc_id] = true
+		elif action.kind == "cancel_job": error = _work.cancel(tx, actor_id, action.id)
 		elif action.kind == "deliver_job": error = _work.deliver(tx, actor_id, action.id)
 		else: error = _work.accept(tx, actor_id, action.id, "work.dialogue." + actor_id + "." + action.id)
 		if not error.is_empty(): return error
@@ -129,11 +141,19 @@ func talk(tx: WorldTransaction, actor_id: String, npc_id: String, choice: Varian
 	return "" if tx.write_domain(DOMAIN, state) else "narrative_write_failed"
 
 func validate(state: Dictionary, snapshot: Dictionary) -> String:
-	if not WorldData.keys(state, ["conversations", "reports"]) or not state.conversations is Dictionary or not state.reports is Dictionary: return "narrative_schema"
+	if not WorldData.keys(state, ["conversations", "reports", "acknowledgements"]) or not state.conversations is Dictionary or not state.reports is Dictionary or not state.acknowledgements is Dictionary: return "narrative_schema"
 	for actor in state.reports:
 		if not actor in _interactions.actors() or not state.reports[actor] is Dictionary: return "report_schema"
 		for claim in state.reports[actor]:
 			if not _config.journal.has(claim) or snapshot.knowledge.get(claim) != "confirmed" or not state.reports[actor][claim] is String or not can_talk(state.reports[actor][claim]): return "report_evidence"
+	for actor in state.acknowledgements:
+		if not actor in _interactions.actors() or not state.acknowledgements[actor] is Dictionary: return "acknowledgement_schema"
+		for job_id in state.acknowledgements[actor]:
+			if not _work.definitions().has(job_id) or not state.acknowledgements[actor][job_id] is Dictionary: return "acknowledgement_reference"
+			var definition: Dictionary = _work.definitions()[job_id]
+			if not _work.job_for(snapshot, actor, job_id).get("status", "") in ["expired", "cancelled"]: return "acknowledgement_outcome"
+			for npc in state.acknowledgements[actor][job_id]:
+				if not npc in [definition.giver_id, definition.recipient_id] or state.acknowledgements[actor][job_id][npc] != true or not state.acknowledgements[actor][job_id][npc] is bool: return "acknowledgement_participant"
 	for actor in state.conversations:
 		var record: Variant = state.conversations[actor]
 		if not actor in _interactions.actors() or not WorldData.keys(record, ["npc_id", "turns", "frame", "epoch"]): return "conversation_schema"

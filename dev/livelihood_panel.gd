@@ -193,10 +193,11 @@ func refresh() -> void:
 	if _offers.item_count > 0:
 		var definition: Dictionary = _model.work.definitions()[_offer_id()]
 		var job := _model.work.job_for(snapshot, _actor, _offer_id())
-		var status: String = job.get("status", "offered")
+		var status: String = job.get("status", "offered" if _model.work.offer_error(snapshot, _actor, _offer_id()).is_empty() else "not offered yet")
 		_job_text.text = "%s → %s\n%s\nReward: %d coins · %s" % [_labels.get(definition.giver_id, definition.giver_id), _labels.get(definition.recipient_id, definition.recipient_id), _goods(definition.requirements), definition.reward, status]
 		if status == "accepted": _job_text.text += "\nDue in %d world minutes" % (job.deadline - snapshot.minute)
-		_accept.disabled = not job.is_empty()
+		_accept.disabled = not _model.work.offer_error(snapshot, _actor, _offer_id()).is_empty()
+		if job.is_empty() and definition.has("requires_completed"): _job_text.text += "\nOptional favor after: " + _model.work.definitions()[definition.requires_completed].label
 		_deliver.disabled = status != "accepted"
 		_abandon.disabled = status != "accepted"
 	else:

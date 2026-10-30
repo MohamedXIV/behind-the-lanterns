@@ -210,6 +210,7 @@ func _run() -> void:
 	await frames(100)
 	view.find_child("Talk", true, false).pressed.emit()
 	check(view.find_child("DialogueSpeaker", true, false).text.contains("Courier"), "world Talk switches to second character")
+	check(view.find_child("SharedCommitments", true, false).text.contains("Kept commitment"), "conversation presents actual shared work memory")
 	app.free()
 	for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
 	DirAccess.remove_absolute(directory)

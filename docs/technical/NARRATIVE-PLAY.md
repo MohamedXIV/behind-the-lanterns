@@ -68,3 +68,29 @@ Final full Godot 4.7.2 run: 418 regression assertions, 47 actual UI/input assert
 all original/connected/region/narrative separate-process restart checks and startup
 PASS, no warnings/errors. Includes report save/restart, missing-evidence rejection,
 stale cursor, failed handover rollback and full gather/prepare/dialogue-deliver loop.
+
+## Shared commitments (#14)
+
+Conversation now presents a person's shared work history from authoritative Work
+outcomes: promised, kept, called off and missed. No duplicated relationship score.
+The player can warn the merchant and call off an active delivery through Ink,
+returning the held payment, or acknowledge a cancelled/expired commitment to each
+affected person independently. Acknowledgement changes their response, never the
+outcome or money. Ordinary trade and exploration remain available after failure.
+
+Keeping the provisions commitment enables one optional grain favor from the same
+giver. `requires_completed` is a bounded Work content condition, checked both on
+acceptance and restore; unknown/cyclic/cross-giver chains are invalid. The journal
+and Ink use the same eligibility check. Goods, rewards and deadlines continue
+through the existing transaction. No mandatory story/relationship gate, generic
+quest engine, gossip network or psychological simulation was added.
+
+Narrative schema v3 adds per-actor/job/person acknowledgement receipts. Previous
+prototype saves remain untouched but incompatible by schema/content fingerprint;
+no migration claimed. NPC physical routines are unchanged discrete projections.
+Final combined Godot 4.7.2 execution: 445 regression assertions, 48 real UI/input
+assertions, all original/connected/region/narrative separate-process restart phases
+and startup PASS, no warnings/errors. Includes missed-time skips, local receipt
+identity, save corruption rejection, cancellation refund, continued trade, and
+actual preparation plus both paid deliveries. No GitHub Actions added. Mobile/Web
+and device usability remain unverified.
