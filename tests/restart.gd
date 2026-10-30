@@ -56,6 +56,7 @@ func _run() -> void:
 	_farming_restart(args[0], args[1] + "-farming")
 	_web_ack_restart(args[0], args[1] + "-web-ack")
 	_law_restart(args[0], args[1] + "-law")
+	_travel_restart(args[0], args[1] + "-travel")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -234,3 +235,27 @@ func _law_restart(mode: String, directory: String) -> void:
 		DirAccess.remove_absolute(directory)
 	m.session.close()
 	print("LAW RESTART " + mode + " checked")
+
+func _travel_restart(mode: String, directory: String) -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dev/fixtures/linked_world.json"))
+	var m := GameplayModel.create(data, "world.travel-restart")
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(m.act("dates", "a:player", "a:supplies", "item.dates", 2, "take").ok, "collect goods before voyage restart")
+		expect(m.move_actor("merchant", "a:player", 620, 160).ok and m.accept_job("job", "a:player", "work.grain").ok, "accept deadline before voyage restart")
+		expect(m.move_actor("boatman", "a:player", 640, 80).ok and m.take_route("ship", "a:player", "route.ship_estuary").ok, "complete paid voyage before restart")
+		expect(store.save(m.session).ok, "save remote arrival and travel log")
+	else:
+		expect(m.adopt(store.load_candidate(m.session)), "restore remote arrival in fresh process")
+		var snapshot := m.session.snapshot()
+		var journeys := m.travel.journeys_for(snapshot, "a:player")
+		expect(m.session.now() == 720 and m.actor_region("a:player") == "region.estuary" and m.position_of("a:player") == Vector2(300, 200), "world time, remote region and arrival position survive restart")
+		expect(m.wallet("a:player") == 6 and m.wallet("a:boatman") == 4 and m.inventory.contents(snapshot, "a:player").get("item.dates", 0) == 2, "fare receipt and carried goods survive restart")
+		expect(journeys.size() == 1 and journeys[0].route_id == "route.ship_estuary" and snapshot.scheduler.events[journeys[0].event_id].status == "completed", "journey log and completed arrival occurrence survive restart")
+		expect(m.work.job_for(snapshot, "a:player", "work.grain").status == "expired", "deadline consequence during voyage survives restart")
+		expect(m.take_route("ship", "a:player", "route.ship_estuary").ok and m.session.snapshot() == snapshot, "persisted journey intent cannot charge or arrive twice")
+		expect(m.move_actor("return-carrier", "a:player", 360, 200).ok and m.take_route("return", "a:player", "route.ship_return").ok and m.actor_region("a:player") == "region.playground", "return public route works after fresh-process restore")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	m.session.close()
+	print("TRAVEL RESTART " + mode + " checked")
