@@ -17,6 +17,7 @@ For current system completeness and test/platform evidence, see [Implementation 
 - Contextual memories of kept, cancelled and missed commitments, acknowledgements, and an optional follow-up favor ([#20](https://github.com/MohamedXIV/behind-the-lanterns/pull/20)).
 - Location-dependent fishing with bait choice, a short active-time reel window, saved catch opportunities, and ordinary goods/trade/preparation integration ([#21](https://github.com/MohamedXIV/behind-the-lanterns/pull/21)).
 - Soil/environment-sensitive cultivation, spaced watering, bounded cultivation skills, lazy offscreen crop growth, and harvest/trade/preparation integration ([#23](https://github.com/MohamedXIV/behind-the-lanterns/pull/23)).
+- Mobile-first semantic input abstraction (`PlayerInput`), runtime key remapping, toggleable running pace, on-screen landscape `TouchControls` with visibility and left/right-handed layout swap, safe-area/compact viewport layout adaptation, pause/focus movement halt + safe-state commit, and Web `/userfs` IndexedDB save acknowledgment (`WebSaveAck` + `RecoveryStore`).
 
 ### Changed
 - Added enforceable design-authority and progress-reporting guidance for development agents and a central implementation ledger ([#22](https://github.com/MohamedXIV/behind-the-lanterns/pull/22)).

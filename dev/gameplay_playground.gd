@@ -29,19 +29,35 @@ var _fishing: FishingPanel
 var _fishing_tab: int = -1
 var _farming: FarmingPanel
 var _farming_tab: int = -1
+var _input: PlayerInput = PlayerInput.new()
+var _touch_controls: TouchControls
+var _margin: MarginContainer
+var _subtitle: Label
+var _touch_visibility_btn: Button
+var _swap_hands_btn: Button
+var _last_margins: Dictionary = {}
 
-func initialize(directory: String = RECOVERY) -> bool:
+func initialize(directory: String = RECOVERY, web_ack: WebSaveAck = null) -> bool:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE))
 	if not parsed is Dictionary: return false
 	_data = parsed
 	_model = GameplayModel.create(_data, "world.playground")
 	if _model == null: return false
 	_actor = _data.presentation.player_id
-	_store = RecoveryStore.new(directory)
+	_store = RecoveryStore.new(directory, web_ack)
 	return true
 
 func model() -> GameplayModel:
 	return _model
+
+func player_input() -> PlayerInput:
+	return _input
+
+func recovery_store() -> RecoveryStore:
+	return _store
+
+func last_safe_margins() -> Dictionary:
+	return _last_margins.duplicate()
 
 func _ready() -> void:
 	if _model == null and not initialize():
@@ -54,15 +70,19 @@ func _ready() -> void:
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
 	var margin := MarginContainer.new()
+	_margin = margin
+	margin.name = "SafeAreaMargin"
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for edge in ["left", "right", "top", "bottom"]: margin.add_theme_constant_override("margin_" + edge, 20)
 	add_child(margin)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
+	column.add_theme_constant_override("separation", 10)
 	margin.add_child(column)
-	_label(column, "Behind the Lanterns  /  working world prototype", 23)
-	_label(column, "Walk or tap the map. Collect supplies, accept a job, prepare goods, then find the recipient.", 16)
+	_label(column, "Behind the Lanterns  /  working world prototype", 22)
+	_subtitle = _label(column, "Walk, run or tap the map. Collect supplies, accept a job, prepare goods, then find the recipient.", 15)
+	_subtitle.name = "PrototypeSubtitle"
 	var time_row := HBoxContainer.new()
+	time_row.add_theme_constant_override("separation", 6)
 	column.add_child(time_row)
 	_clock = _label(time_row, "", 18)
 	_clock.name = "WorldTime"
@@ -70,19 +90,34 @@ func _ready() -> void:
 	_button(time_row, "Wait1h", _wait.bind(60))
 	_button(time_row, "Wait6h", _wait.bind(360))
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 20)
+	row.add_theme_constant_override("separation", 16)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(row)
+	var map_column := VBoxContainer.new()
+	map_column.name = "MapColumn"
+	map_column.add_theme_constant_override("separation", 8)
+	map_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	map_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.add_child(map_column)
 	_map = PlaygroundMap.new()
 	_map.name = "WorldMap"
-	_map.custom_minimum_size = Vector2(540, 370)
+	_map.custom_minimum_size = Vector2(540, 310)
 	_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(_map)
-	_map.configure(_model, _actor, _data.presentation.labels, _data.presentation.walk_speed)
+	_map.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	map_column.add_child(_map)
+	_map.configure(_model, _actor, _data.presentation.labels, _data.presentation.walk_speed, _input)
 	_map.target_selected.connect(_select_target)
 	_map.stopped.connect(_on_stopped)
 	_map.use_requested.connect(_use_target)
+	_map.talk_requested.connect(_talk_nearby)
+	_map.combat_intent_triggered.connect(_on_combat_intent)
 	_map.feedback.connect(_show_message)
+	_touch_controls = TouchControls.new()
+	map_column.add_child(_touch_controls)
+	_touch_controls.configure(_input)
+	_touch_controls.use_pressed.connect(_use_nearby)
+	_touch_controls.talk_pressed.connect(_talk_nearby)
+	_touch_controls.combat_action_pressed.connect(_on_combat_intent)
 	var use_button := _button(time_row, "Use nearby", _use_nearby)
 	use_button.tooltip_text = "E or tap: use the closest unobstructed object"
 	var tabs := TabContainer.new()
@@ -145,10 +180,16 @@ func _ready() -> void:
 	side.add_child(saves)
 	_button(saves, "Save", _save)
 	_button(saves, "Load", _load)
-	_status = _label(side, "Walk near an object to use it. Native saves only in this increment.", 16)
+	var ergonomics := HBoxContainer.new()
+	ergonomics.name = "ErgonomicsRow"
+	side.add_child(ergonomics)
+	_touch_visibility_btn = _button(ergonomics, "TouchVisibility", _toggle_touch_visibility)
+	_swap_hands_btn = _button(ergonomics, "SwapHands", _toggle_handedness)
+	_refresh_ergonomics()
+	_status = _label(side, "Walk, run or tap the map. Approach an object to use it.", 16)
 	_status.name = "Status"
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status.custom_minimum_size.x = 300
+	_status.custom_minimum_size.x = 260
 	var work_scroll := ScrollContainer.new()
 	work_scroll.name = "Work and craft"
 	tabs.add_child(work_scroll)
@@ -188,6 +229,8 @@ func _ready() -> void:
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.
+	resized.connect(func(): apply_viewport_layout())
+	apply_viewport_layout()
 	_map.grab_focus()
 	session_changed.emit(_model.session)
 
@@ -380,8 +423,62 @@ func _talk_nearby() -> void:
 		_show_message(prepared.code)
 		return
 	var id := _map.nearby_target()
-	if id.is_empty() or not _model.narrative.can_talk(id):
+	if id.is_empty() or _model.narrative == null or not _model.narrative.can_talk(id):
 		_show_message("Approach someone who has time to talk.")
 		return
 	_tabs.current_tab = 2
 	_conversation.open(id)
+
+func _on_combat_intent(action: String) -> void:
+	var label: String = {"btl_dodge": "Evade", "btl_block": "Guard", "btl_primary_action": "Action"}.get(action, action)
+	_show_message("%s ready — peaceful quarter (no active threat nearby)." % label)
+
+func _toggle_touch_visibility() -> void:
+	var next := PlayerInput.VISIBILITY_HIDDEN if _input.is_touch_visible() else PlayerInput.VISIBILITY_SHOWN
+	_input.set_touch_visibility(next)
+	_refresh_ergonomics()
+
+func _toggle_handedness() -> void:
+	var next := PlayerInput.HANDEDNESS_SWAPPED if _input.handedness() == PlayerInput.HANDEDNESS_STANDARD else PlayerInput.HANDEDNESS_STANDARD
+	_input.set_handedness(next)
+	_refresh_ergonomics()
+
+func _refresh_ergonomics() -> void:
+	if _touch_controls != null: _touch_controls.refresh()
+	if _touch_visibility_btn != null:
+		_touch_visibility_btn.text = "Touch: On" if _input.is_touch_visible() else "Touch: Off"
+	if _swap_hands_btn != null:
+		_swap_hands_btn.text = "Hands: L" if _input.handedness() == PlayerInput.HANDEDNESS_SWAPPED else "Hands: R"
+
+func apply_viewport_layout(viewport_size: Vector2i = Vector2i.ZERO, safe_rect: Rect2i = Rect2i()) -> Dictionary:
+	var resolved_size := viewport_size
+	if resolved_size == Vector2i.ZERO:
+		resolved_size = Vector2i(size) if size.x > 0 and size.y > 0 else (Vector2i(get_viewport_rect().size) if is_inside_tree() else Vector2i(1120, 720))
+	var resolved_safe := safe_rect
+	if resolved_safe.size == Vector2i.ZERO and viewport_size == Vector2i.ZERO:
+		resolved_safe = DisplayServer.get_display_safe_area()
+	_last_margins = PlayerInput.compute_safe_margins(resolved_size, resolved_safe, 16)
+	if _margin != null:
+		for edge in ["left", "right", "top", "bottom"]:
+			_margin.add_theme_constant_override("margin_" + edge, int(_last_margins[edge]))
+	var compact: bool = bool(_last_margins.get("compact", false))
+	if _subtitle != null: _subtitle.visible = not compact
+	if _map != null: _map.custom_minimum_size = Vector2(360, 180) if compact else Vector2(540, 300)
+	if _tabs != null: _tabs.custom_minimum_size.x = 270 if compact else 350
+	return _last_margins.duplicate()
+
+func on_application_paused() -> void:
+	if _map != null: _map.on_application_paused()
+	if _touch_controls != null: _touch_controls.refresh()
+	if _model != null and not _model.session.is_closed():
+		_prepare_action()
+
+func on_application_resumed() -> void:
+	if _map != null: _map.on_application_resumed()
+	if _touch_controls != null: _touch_controls.refresh()
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_WINDOW_FOCUS_OUT]:
+		on_application_paused()
+	elif what in [NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN, NOTIFICATION_WM_WINDOW_FOCUS_IN]:
+		on_application_resumed()

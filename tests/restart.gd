@@ -54,6 +54,7 @@ func _run() -> void:
 	_narrative_restart(args[0], args[1] + "-narrative")
 	_fishing_restart(args[0], args[1] + "-fishing")
 	_farming_restart(args[0], args[1] + "-farming")
+	_web_ack_restart(args[0], args[1] + "-web-ack")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -185,3 +186,20 @@ func _farming_restart(mode: String, directory: String) -> void:
 		DirAccess.remove_absolute(directory)
 	m.session.close()
 	print("FARMING RESTART " + mode + " checked")
+
+func _web_ack_restart(mode: String, directory: String) -> void:
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dev/fixtures/linked_world.json"))
+	var m := GameplayModel.create(data, "world.web-ack-restart")
+	var web_ack := WebSaveAck.new()
+	web_ack.configure_simulated_web(true)
+	var store := RecoveryStore.new(directory, web_ack)
+	if mode == "write":
+		expect(m.act("take-dates", "a:player", "a:supplies", "item.dates", 3, "take").ok and m.move_actor("walk-east", "a:player", 360, 160).ok, "gameplay mutation before Web-acknowledged save")
+		expect(store.save(m.session).ok and web_ack.last_state() == "confirmed", "Web-acknowledged save commits generation 1")
+	else:
+		expect(m.adopt(store.load_candidate(m.session)), "fresh process restores Web-acknowledged save")
+		expect(m.inventory.contents(m.session.snapshot(), "a:player").get("item.dates", 0) == 3 and m.position_of("a:player") == Vector2(360, 160), "custody and position restored across simulated browser reload")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	m.session.close()
+	print("WEB ACK RESTART " + mode + " checked")

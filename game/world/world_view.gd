@@ -6,6 +6,8 @@ extends Control
 signal target_selected(entity_id: String)
 signal stopped(point: Vector2)
 signal use_requested(entity_id: String)
+signal talk_requested()
+signal combat_intent_triggered(action: String)
 signal feedback(text: String)
 var _route := PackedVector2Array()
 
@@ -20,16 +22,43 @@ var _visual: Vector2
 var _goal: Vector2
 var _pointer_walking: bool = false
 var _keyboard_walking: bool = false
+var _paused: bool = false
+var _input: PlayerInput = PlayerInput.new()
 var selected_target: String = ""
 
-func configure(model: GameplayModel, actor: String, labels: Dictionary, speed: float) -> void:
+func configure(model: GameplayModel, actor: String, labels: Dictionary, speed: float, input: PlayerInput = null) -> void:
 	_model = model
 	_actor = actor
 	_labels = labels.duplicate()
 	_speed = speed
+	if input != null: _input = input
 	focus_mode = Control.FOCUS_ALL
 	clip_contents = true
 	sync_position()
+
+func player_input() -> PlayerInput:
+	return _input
+
+func is_application_paused() -> bool:
+	return _paused
+
+func on_application_paused() -> void:
+	var was_moving := _pointer_walking or _keyboard_walking
+	_paused = true
+	if _input != null: _input.release_all()
+	halt()
+	if was_moving: stopped.emit(_visual)
+	queue_redraw()
+
+func on_application_resumed() -> void:
+	_paused = false
+	queue_redraw()
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_WINDOW_FOCUS_OUT]:
+		on_application_paused()
+	elif what in [NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN, NOTIFICATION_WM_WINDOW_FOCUS_IN]:
+		on_application_resumed()
 
 func sync_position() -> void:
 	_visual = _model.position_of(_actor)
@@ -85,17 +114,17 @@ func _tap(point: Vector2) -> void:
 	queue_redraw()
 
 func _process(delta: float) -> void:
-	if _model == null or _model.session.is_closed(): return
-	var direction := Vector2.ZERO
-	if has_focus():
-		direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
-		direction.x += float(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A))
-		direction.y += float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W))
+	if _paused or _model == null or _model.session.is_closed(): return
+	var direction := _input.movement_vector(has_focus()) if _input != null else Vector2.ZERO
+	var current_speed := _speed * (_input.speed_multiplier(has_focus()) if _input != null else 1.0)
 	if not direction.is_zero_approx():
-		var step := direction.normalized() * _speed * minf(delta, 0.1)
+		var step := direction.normalized() * current_speed * minf(delta, 0.1)
 		for axis in [Vector2(step.x, 0), Vector2(0, step.y)]:
-			var next: Vector2 = _visual + axis
-			if _geometry().walkable(next) and _geometry().clear_segment(_visual, next, _geometry().radius): _visual = next
+			for scale in [1.0, 0.5, 0.25]:
+				var next: Vector2 = _visual + axis * scale
+				if _geometry().walkable(next) and _geometry().clear_segment(_visual, next, _geometry().radius):
+					_visual = next
+					break
 		_goal = _visual
 		_route.clear()
 		_pointer_walking = false
@@ -106,7 +135,7 @@ func _process(delta: float) -> void:
 		stopped.emit(_visual)
 	elif _pointer_walking:
 		var next: Vector2 = _route[0]
-		_visual = _visual.move_toward(next, _speed * minf(delta, 0.1))
+		_visual = _visual.move_toward(next, current_speed * minf(delta, 0.1))
 		if _visual.is_equal_approx(next): _route.remove_at(0)
 		queue_redraw()
 		if _route.is_empty():
@@ -188,9 +217,23 @@ func _quantity(snapshot: Dictionary, holder: String) -> int:
 	return amount
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_E:
+	if _paused or _input == null: return
+	if _input.matches_event(PlayerInput.INTERACT, event):
+		_input.trigger_action(PlayerInput.INTERACT)
 		use_nearby()
 		get_viewport().set_input_as_handled()
+		return
+	if _input.matches_event(PlayerInput.TALK, event):
+		_input.trigger_action(PlayerInput.TALK)
+		talk_requested.emit()
+		get_viewport().set_input_as_handled()
+		return
+	for action in PlayerInput.COMBAT_ACTIONS:
+		if _input.matches_event(action, event):
+			_input.trigger_action(action)
+			combat_intent_triggered.emit(action)
+			get_viewport().set_input_as_handled()
+			return
 
 func nearby_target() -> String:
 	var best := ""
