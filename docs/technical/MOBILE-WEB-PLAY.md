@@ -30,8 +30,9 @@
    - `WorldView` and `GameplayPlayground` handle `NOTIFICATION_APPLICATION_PAUSED`, `NOTIFICATION_APPLICATION_RESUMED`, `NOTIFICATION_APPLICATION_FOCUS_OUT`, and `NOTIFICATION_WM_WINDOW_FOCUS_OUT` by halting active movement, releasing held inputs, flushing active preparation/fishing progress, and committing the actor's safe position.
 
 4. **Browser Save Durability & IndexedDB (`/userfs`) Acknowledgment (`game/persistence/web_save_ack.gd`, `game/persistence/recovery_store.gd`):**
-   - `WebSaveAck` provides a read-only IndexedDB `/userfs` `FILE_DATA` verification bridge (`window.__btlSaveAck`) with a `beforeunload` warning while a flush is in flight, paired with `JavaScriptBridge.force_fs_sync()`.
-   - `RecoveryStore` checks `web_ack.is_persistent()` (rejecting unmounted/private-browsing storage with `web_storage_unavailable`), writes and verifies the inactive A/B slot, flushes and verifies `/userfs`, and rolls back the newly renamed slot if Web sync fails so the previous valid generation remains intact.
+   - `WebSaveAck` provides a read-only IndexedDB `/userfs` `FILE_DATA` verification bridge (`window.__btlSaveAck`) with monotonic `writeId` protection against stale callbacks and a `beforeunload` warning while a flush is in flight, paired with `JavaScriptBridge.force_fs_sync()`.
+   - **Strict Completion/Failure Boundary:** `WebSaveAck.sync_and_verify()` and `RecoveryStore.save()` never report success while IndexedDB verification is `"pending"` (synchronous `save()` fails closed with `web_sync_pending` and rolls back the unconfirmed slot).
+   - **Delayed Asynchronous Polling & In-Flight Guards:** `RecoveryStore.begin_save()` + `poll_save(step_ms)` support multi-frame IndexedDB commits, reject overlapping saves with `web_save_in_flight`, ignore unconfirmed in-flight slots during `load_candidate()`, and roll back unconfirmed slots on error (`web_sync_failed`) or timeout (`web_sync_timeout`) while preserving prior confirmed A/B generations.
    - Added `tools/export-web.sh` to automate `Web smoke` export when Godot 4.7.2 Web export templates are installed and report an explicit blocker code when templates are absent.
 
 ---
@@ -40,7 +41,7 @@
 
 | Check | Status | Evidence / Environment Blocker |
 | --- | --- | --- |
-| Godot Standard 4.7.2 headless regression, UI & restart suite | **Verified** | `bash tools/test-headless.sh` passes with 0 errors and 0 warnings (`FOUNDATION PASS: 588 assertions, 0 failures`, `GAMEPLAY UI PASS: 69 assertions, 0 failures`, 8 multi-process `RESTART` suites). |
+| Godot Standard 4.7.2 headless regression, UI & restart suite | **Verified** | `bash tools/test-headless.sh` passes with 0 errors and 0 warnings (`FOUNDATION PASS: 601 assertions, 0 failures`, `GAMEPLAY UI PASS: 69 assertions, 0 failures`, 8 multi-process `RESTART` suites). |
 | `inkgd` + GDScript runtime compatibility | **Verified (desktop headless)** | Real Ink stories compile and execute through `NarrativeRules` and `ConversationPanel` in Godot 4.7.2; reference project `MohamedXIV/kiosk-on-the-nile` confirms the same GDScript `inkgd` runtime on Godot 4.7.2 Web. |
 | Web persistence (`RecoveryStore` + `WebSaveAck`) contract | **Verified (simulated IndexedDB `/userfs` + restart)** | Tested persistent A/B slot rotation, byte-level `/userfs` `FILE_DATA` verification, non-persistent storage rejection (`web_storage_unavailable`), and rollback on sync failure (`web_sync_failed`). |
 | Actual `.wasm`/`.pck` Web export & live browser execution | **Blocked in container** | `~/.local/share/godot/export_templates/4.7.2.stable/web_nothreads_*.zip` and browser binaries (`chromium`/`firefox`) are not pre-installed in this container (`tools/export-web.sh` exits with code 2 diagnostic). |
