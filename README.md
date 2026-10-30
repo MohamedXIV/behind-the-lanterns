@@ -28,9 +28,9 @@ You are not a chosen hero, a king, or an outlaw. You can build a modest life, re
 
 These are examples of interaction between systems—not mandatory quests or promises of particular launch content.
 
-## Status — 29 October 2026
+## Status — 30 October 2026
 
-**Connected livelihood gameplay is playable in the disposable playground.** Collect/store/trade goods, accept optional delivery jobs, prepare provisions over active-play seconds, wait for a recipient's routine and deliver for a reserved one-time payment. Waiting advances the world clock, NPC locations/availability and consequential deadlines. Save/load retains work, reservations and partial preparation. See [connected gameplay evidence](docs/technical/CONNECTED-GAMEPLAY.md). This is test content, not the final city, artwork or story. BTL Ink integration and platform exports remain unverified.
+**Gameplay now connects livelihood, linked interiors and actual Ink narrative.** Players can move and interact spatially, collect/store/trade goods, prepare provisions, complete or cancel optional jobs, discuss independent discoveries and see contextual NPC commitment memories. Native save/restart is tested, but the world/art remain disposable prototype content; **mobile/Web platform acceptance remains unverified**. See [live implementation status](docs/IMPLEMENTATION-STATUS.md), [narrative evidence](docs/technical/NARRATIVE-PLAY.md) and [Issue #14](https://github.com/MohamedXIV/behind-the-lanterns/issues/14).
 
 ### Agreed
 - **Engine:** Godot; **rendering:** detailed 2D high-resolution pixel-art direction, fixed elevated front-readable 3/4 oblique view (not true isometric).
@@ -43,7 +43,7 @@ These are examples of interaction between systems—not mandatory quests or prom
 - **Production:** systems first, very small replaceable test fixtures, authored meaningful content; **no canonical content-heavy vertical slice**.
 
 ### Deliberately not agreed yet
-- BTL-specific inkgd integration and Android/iOS/Web export/device acceptance remain unverified.
+- BTL-specific inkgd integration is implemented and desktop-tested; Android/iOS/Web export/device acceptance remains unverified.
 - ADR-002 is the reviewed engineering baseline; active-play clock pacing and gameplay checkpoint policy remain open.
 - Save-vs-checkpoint semantics, the rhythm of in-game time and needs, exact mobile input mapping.
 - Starting city's final choice (Alexandria is a candidate) and public-release content bounds.
@@ -69,7 +69,8 @@ These are examples of interaction between systems—not mandatory quests or prom
 | [ADR-002 Transactional Foundation](docs/adr/ADR-002-TRANSACTIONAL-FOUNDATION.md) | **Engineering baseline merged in #11**: atomic advancement, identity, ordering, domain contracts and recovery |
 | [System Catalog](docs/07-SYSTEM-CATALOG.md) | Candidate systems, responsibilities, state ownership, boundaries |
 | [Decision Register](docs/DECISIONS.md) | Explicit Locked/Provisional/Open/Deferred decisions |
-| [Agent Contract](AGENTS.md) | Instructions for AI coding agents |
+| [Agent Contract](AGENTS.md) | Mandatory design authorization and progress reporting for every AI coding agent |
+| [Implementation Status](docs/IMPLEMENTATION-STATUS.md) | Current code-backed feature coverage, limits, and verified platforms |
 
 ## Development principles
 

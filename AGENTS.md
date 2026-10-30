@@ -28,6 +28,17 @@ Favor **shallow inheritance plus composition** of small reusable policies/capabi
 ## Decisions and uncertainty
 Use **Locked**, **Provisional**, **Open**, **Deferred** consistently. Do not silently turn Provisional or Open proposals into final decisions. Update the decision register and the appropriate GDD when decisions change.
 
+## Mandatory design authorization and progress synchronization
+
+**Treat project documents and tracked work as binding product authority.** Before choosing a batch or changing gameplay:
+1. Inspect actual current `main`, open PRs, and relevant GitHub issues. Read `docs/00-CONSTITUTION.md`, `docs/DECISIONS.md`, the appropriate GDD(s), `docs/05-PRODUCTION.md` (roadmap), `docs/07-SYSTEM-CATALOG.md`, and `docs/IMPLEMENTATION-STATUS.md`. For a given issue, check its latest body/comments and dependencies.
+2. Trace each substantial **player-facing system or mechanic** to a confirmed requirement in those sources and an issue/roadmap item. Say which requirement it satisfies in the PR. Documentation may list candidates and proposals: do **not** silently upgrade Open/Provisional/Deferred or candidate items into approved game-design scope.
+3. **No self-authorized new gameplay systems, fictional setting decisions, compulsory progression or major mechanics.** If a genuinely valuable idea has no existing authorization, raise it as an explicit **proposal** in the relevant issue (or a focused new issue only when necessary) and wait for owner approval; continue with dependency-ready authorized work. Small incidental UX and necessary engineering details are implementation choices, not new product systems.
+4. **Autonomy is for engineering**: select dependency-ready approved features, implementation order, patterns, data layout, UI integration, code refactoring and tests using independent judgment. Challenge technical assumptions when evidence warrants. Product/design changes need explicit approval, not permission inferred from agent enthusiasm.
+5. **Update progress during the work and at delivery**, not just in a final chat summary: keep the active issue/PR updated with concise status, blockers, scope adjustments and verification evidence. After a batch, update `docs/IMPLEMENTATION-STATUS.md` in the same PR with implemented/partial/not-started capabilities and links; also update affected issue checklists/status and any design documents/decision register truly changed. Do not close an issue until its actual acceptance criteria are met.
+6. If the roadmap or docs disagree with current code, record the discrepancy and source links rather than silently rewriting game design to suit the code. Keep "implemented", "tested", "platform-verified" and "feature complete" separate. Never claim a working mobile/Web build without direct evidence.
+7. Handoff between models must be reproducible from GitHub alone: state exact base/main, merged PR links, what actually works, how to run/reproduce, known gaps and the next **approved** dependency-ready work. Avoid repetitive historical narration or invented milestones.
+
 ## Repository workflow
 GitHub is the project source of truth. Inspect current main, open PRs, and issues before changes. Make one coherent branch/PR per bounded batch. Never force-push main. No mass issue generation or competing feature branches.
 
