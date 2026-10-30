@@ -12,18 +12,19 @@ var npcs: NpcScheduleRules
 var crafting: CraftingRules
 var work: WorkRules
 var narrative: NarrativeRules
+var fishing: FishingRules
 
 static func create(data: Dictionary, world_id: String) -> GameplayModel:
-	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative"]): return null
+	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing"]): return null
 	# Match the codec's canonical numeric representation at content ingestion.
 	data = WorldData.normalize(data)
 	for field in ["world", "inventory", "economy", "interactions"]:
 		if not data[field] is Dictionary: return null
-	for field in ["npcs", "crafting", "work", "narrative"]:
+	for field in ["npcs", "crafting", "work", "narrative", "fishing"]:
 		if data.has(field) and not data[field] is Dictionary: return null
 	if not WorldData.integer(data.get("start_minute", 0)): return null
 	var content := {"inventory": data.inventory, "economy": data.economy, "interactions": data.interactions}
-	for field in ["npcs", "crafting", "work", "start_minute", "narrative"]:
+	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing"]:
 		if data.has(field): content[field] = data[field]
 	var definition := WorldDefinition.create(data.world, content)
 	if definition == null: return null
@@ -51,6 +52,10 @@ static func create(data: Dictionary, world_id: String) -> GameplayModel:
 		model.narrative = NarrativeRules.create(data.narrative, data.world, model.interactions, model.work)
 		if model.narrative == null: return null
 		domains.append(model.narrative)
+	if data.has("fishing"):
+		model.fishing = FishingRules.create(data.fishing, model.inventory, model.interactions)
+		if model.fishing == null: return null
+		domains.append(model.fishing)
 	model.session = GameSession.create(definition, domains, world_id)
 	if model.session != null and not model.session.advance_to(data.get("start_minute", 0)).ok: return null
 	return model if model.session != null else null
@@ -125,3 +130,19 @@ func talk(intent: String, actor_id: String, npc_id: String, choice: Variant = -1
 func inspect_object(intent: String, actor_id: String, target_id: String) -> OperationResult:
 	if narrative == null: return OperationResult.failure("no_narrative")
 	return session.transact(intent, func(tx: WorldTransaction) -> String: return narrative.observe(tx, actor_id, target_id))
+
+func cast_line(intent: String, actor: String, spot: String, bait: String) -> OperationResult:
+	if fishing == null: return OperationResult.failure("no_fishing")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return fishing.cast(tx, actor, spot, bait))
+
+func progress_fishing(intent: String, actor: String, milliseconds: Variant) -> OperationResult:
+	if fishing == null: return OperationResult.failure("no_fishing")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return fishing.progress(tx, actor, milliseconds))
+
+func reel_line(intent: String, actor: String) -> OperationResult:
+	if fishing == null: return OperationResult.failure("no_fishing")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return fishing.reel(tx, actor))
+
+func cancel_fishing(intent: String, actor: String) -> OperationResult:
+	if fishing == null: return OperationResult.failure("no_fishing")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return fishing.cancel(tx, actor))

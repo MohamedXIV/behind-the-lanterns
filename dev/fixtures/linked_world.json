@@ -4,7 +4,8 @@
       "region.playground",
       "region.remote",
       "region.workshop",
-      "region.alcove"
+      "region.alcove",
+      "region.river"
     ],
     "definitions": [
       "actor.resident",
@@ -17,7 +18,12 @@
       "actor.courier",
       "object.workbench",
       "item.provisions",
-      "object.door"
+      "object.door",
+      "object.fishing_spot",
+      "item.silverfish",
+      "item.carp",
+      "item.catfish",
+      "item.fish_meal"
     ],
     "entities": {
       "a:player": {
@@ -75,16 +81,34 @@
       "a:dry-basin": {
         "definition_id": "object.supplies",
         "region_id": "region.alcove"
+      },
+      "a:river-path": {
+        "definition_id": "object.door",
+        "region_id": "region.playground"
+      },
+      "a:river-return": {
+        "definition_id": "object.door",
+        "region_id": "region.river"
+      },
+      "a:reed-bank": {
+        "definition_id": "object.fishing_spot",
+        "region_id": "region.river"
+      },
+      "a:deep-pool": {
+        "definition_id": "object.fishing_spot",
+        "region_id": "region.river"
       }
     },
     "facts": {
       "fact.passage_exists": true,
-      "fact.basin_dry": true
+      "fact.basin_dry": true,
+      "fact.riverbank_exists": true
     },
     "claims": [
       "claim.passage",
       "claim.water",
-      "claim.dry_basin"
+      "claim.dry_basin",
+      "claim.riverbank"
     ]
   },
   "inventory": {
@@ -103,6 +127,22 @@
       },
       "item.provisions": {
         "label": "Packed provisions",
+        "stack_limit": 5
+      },
+      "item.silverfish": {
+        "label": "River silverfish",
+        "stack_limit": 5
+      },
+      "item.carp": {
+        "label": "Reed carp",
+        "stack_limit": 5
+      },
+      "item.catfish": {
+        "label": "Channel catfish",
+        "stack_limit": 5
+      },
+      "item.fish_meal": {
+        "label": "Prepared fish",
         "stack_limit": 5
       }
     },
@@ -184,6 +224,22 @@
           "item.provisions": {
             "buy_price": 6,
             "sell_price": 4
+          },
+          "item.silverfish": {
+            "buy_price": 7,
+            "sell_price": 3
+          },
+          "item.carp": {
+            "buy_price": 7,
+            "sell_price": 3
+          },
+          "item.catfish": {
+            "buy_price": 7,
+            "sell_price": 3
+          },
+          "item.fish_meal": {
+            "buy_price": 7,
+            "sell_price": 3
           }
         }
       }
@@ -254,6 +310,22 @@
       "a:dry-basin": {
         "x": 260,
         "y": 220
+      },
+      "a:river-path": {
+        "x": 700,
+        "y": 330
+      },
+      "a:river-return": {
+        "x": 100,
+        "y": 330
+      },
+      "a:reed-bank": {
+        "x": 220,
+        "y": 180
+      },
+      "a:deep-pool": {
+        "x": 600,
+        "y": 180
       }
     },
     "geometry": {
@@ -282,6 +354,17 @@
       "region.alcove": {
         "radius": 10,
         "obstacles": []
+      },
+      "region.river": {
+        "radius": 10,
+        "obstacles": [
+          {
+            "x": 330,
+            "y": 50,
+            "width": 100,
+            "height": 180
+          }
+        ]
       }
     },
     "portals": {
@@ -304,6 +387,16 @@
         "region_id": "region.workshop",
         "x": 650,
         "y": 300
+      },
+      "a:river-path": {
+        "region_id": "region.river",
+        "x": 100,
+        "y": 300
+      },
+      "a:river-return": {
+        "region_id": "region.playground",
+        "x": 700,
+        "y": 300
       }
     }
   },
@@ -324,13 +417,19 @@
       "a:indoor-chest": "Workshop storage",
       "a:side-passage": "Narrow side passage",
       "a:alcove-exit": "Workshop passage",
-      "a:dry-basin": "Old stone basin"
+      "a:dry-basin": "Old stone basin",
+      "a:river-path": "Path to the river",
+      "a:river-return": "Courtyard path",
+      "a:reed-bank": "Quiet reed bank",
+      "a:deep-pool": "Deep river channel"
     },
     "region_labels": {
       "region.playground": "Courtyard",
       "region.workshop": "Workshop",
-      "region.alcove": "Quiet alcove"
-    }
+      "region.alcove": "Quiet alcove",
+      "region.river": "Riverbank"
+    },
+    "default_item": "item.dates"
   },
   "start_minute": 480,
   "npcs": {
@@ -417,6 +516,39 @@
           "item.provisions": 2
         },
         "duration_seconds": 3
+      },
+      "recipe.z_fish_silverfish": {
+        "label": "Prepare silverfish",
+        "station_definition": "object.workbench",
+        "ingredients": {
+          "item.silverfish": 1
+        },
+        "outputs": {
+          "item.fish_meal": 2
+        },
+        "duration_seconds": 3
+      },
+      "recipe.z_fish_carp": {
+        "label": "Prepare carp",
+        "station_definition": "object.workbench",
+        "ingredients": {
+          "item.carp": 1
+        },
+        "outputs": {
+          "item.fish_meal": 2
+        },
+        "duration_seconds": 3
+      },
+      "recipe.z_fish_catfish": {
+        "label": "Prepare catfish",
+        "station_definition": "object.workbench",
+        "ingredients": {
+          "item.catfish": 1
+        },
+        "outputs": {
+          "item.fish_meal": 2
+        },
+        "duration_seconds": 3
       }
     }
   },
@@ -457,7 +589,8 @@
     "journal": {
       "claim.passage": "A side passage exists beyond the workshop.",
       "claim.water": "A boatman claims a singing spring offers water in the alcove.",
-      "claim.dry_basin": "The alcove basin is dry; its carved channel holds only dust."
+      "claim.dry_basin": "The alcove basin is dry; its carved channel holds only dust.",
+      "claim.riverbank": "The river has a quiet reed bank and a deeper fishing channel."
     },
     "discoveries": {
       "a:side-passage": {
@@ -467,6 +600,10 @@
       "a:dry-basin": {
         "claim_id": "claim.dry_basin",
         "fact_id": "fact.basin_dry"
+      },
+      "a:river-path": {
+        "claim_id": "claim.riverbank",
+        "fact_id": "fact.riverbank_exists"
       }
     },
     "conversations": {
@@ -607,6 +744,39 @@
             "id": "work.favor"
           }
         }
+      }
+    }
+  },
+  "fishing": {
+    "spots": {
+      "a:reed-bank": {
+        "label": "Quiet reed bank · grain attracts small fish",
+        "bite_ms": 2000,
+        "window_ms": 1200,
+        "pool": [
+          {
+            "bait": "item.grain",
+            "fish": "item.silverfish",
+            "weight": 3
+          },
+          {
+            "bait": "item.grain",
+            "fish": "item.carp",
+            "weight": 1
+          }
+        ]
+      },
+      "a:deep-pool": {
+        "label": "Deep channel · date bait for catfish",
+        "bite_ms": 2500,
+        "window_ms": 1500,
+        "pool": [
+          {
+            "bait": "item.dates",
+            "fish": "item.catfish",
+            "weight": 1
+          }
+        ]
       }
     }
   }

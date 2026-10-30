@@ -25,6 +25,8 @@ var _livelihood: LivelihoodPanel
 var _clock: Label
 var _tabs: TabContainer
 var _conversation: ConversationPanel
+var _fishing: FishingPanel
+var _fishing_tab: int = -1
 
 func initialize(directory: String = RECOVERY) -> bool:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE))
@@ -114,6 +116,8 @@ func _ready() -> void:
 	for id in _model.inventory.item_ids():
 		_items.add_item(_model.inventory.item_definition(id).label)
 		_items.set_item_metadata(_items.item_count - 1, id)
+	for index in _items.item_count:
+		if _items.get_item_metadata(index) == _data.presentation.get("default_item", ""): _items.select(index)
 	side.add_child(_items)
 	_items.item_selected.connect(_on_selection_changed)
 	_quantity = SpinBox.new()
@@ -161,6 +165,15 @@ func _ready() -> void:
 		narrative_scroll.add_child(_conversation)
 		_conversation.configure(_model, _actor, _prepare_action)
 		_button(time_row, "Talk", _talk_nearby)
+	if _model.fishing != null:
+		_fishing_tab = tabs.get_tab_count()
+		var fishing_scroll := ScrollContainer.new()
+		fishing_scroll.name = "Fishing"
+		tabs.add_child(fishing_scroll)
+		_fishing = FishingPanel.new()
+		_fishing.name = "FishingPanel"
+		fishing_scroll.add_child(_fishing)
+		_fishing.configure(_model, _actor, _prepare_action, _map.visual_position)
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.
@@ -208,6 +221,7 @@ func _bind(candidate: GameSession) -> void:
 
 func _on_replaced(candidate: GameSession) -> void:
 	_livelihood.reset_after_load()
+	if _fishing != null: _fishing.reset_after_load()
 	_bind(candidate)
 	_map.sync_position()
 	session_changed.emit(candidate)
@@ -223,6 +237,7 @@ func _commit_position() -> OperationResult:
 
 func _prepare_action() -> OperationResult:
 	_livelihood.flush_progress()
+	if _fishing != null: _fishing.flush_progress()
 	return _commit_position()
 
 func _show_message(text: String) -> void:
@@ -286,6 +301,7 @@ func _refresh(_revision: int) -> void:
 	_clock.text = _region_label() + " · " + "Day %d · %02d:%02d" % [int(snapshot.minute / WorldClock.MINUTES_PER_DAY) + 1, int(snapshot.minute / 60) % 24, int(snapshot.minute) % 60]
 	_livelihood.refresh()
 	if _conversation != null: _conversation.refresh()
+	if _fishing != null: _fishing.refresh()
 	_map.queue_redraw()
 
 func _goods_text(goods: Dictionary) -> String:
@@ -310,6 +326,10 @@ func _use_target(id: String) -> void:
 	var result := _prepare_action()
 	if not result.ok:
 		_show_message(result.code)
+		return
+	if _model.fishing != null and _model.fishing.spots().has(id):
+		_tabs.current_tab = _fishing_tab
+		_fishing.open(id)
 		return
 	if _model.interactions.is_portal(id):
 		result = _model.enter(_intent("enter"), _actor, id)

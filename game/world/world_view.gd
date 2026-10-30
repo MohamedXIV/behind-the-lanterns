@@ -140,7 +140,11 @@ func _draw() -> void:
 		var npc := _model.npcs.projection(id, snapshot.minute)
 		if not npc.is_empty() and not npc.available: color = Color("6e8582")
 		draw_ellipse_shadow(at)
-		if not npc.is_empty():
+		if _model.fishing != null and _model.fishing.spots().has(id):
+			draw_circle(at, 22, Color("254d60"))
+			draw_arc(at, 18, 0, TAU, 32, Color("85d4dc"), 2)
+			draw_circle(at + Vector2(0, -5), 3, Color("f5d48d"))
+		elif not npc.is_empty():
 			draw_circle(at + Vector2(0, -25), 8, color.lightened(0.2))
 			draw_rect(Rect2(at - Vector2(9, 18), Vector2(18, 20)), color)
 		elif _model.interactions.is_portal(id):
@@ -152,6 +156,7 @@ func _draw() -> void:
 		if id == selected_target: draw_arc(at, 24, 0, TAU, 32, Color("ffe3a1"), 2)
 		draw_string(font, at + Vector2(-80, -28), _labels.get(id, id), HORIZONTAL_ALIGNMENT_CENTER, 160, 16, Color("e8e4d5"))
 		var detail: String = npc.activity if not npc.is_empty() else "Preparation" if id in _model.crafting.station_ids() else "%d goods" % _quantity(snapshot, id)
+		if _model.fishing != null and _model.fishing.spots().has(id): detail = "Water · Use to fish"
 		if _model.interactions.is_portal(id): detail = "Door · Use nearby"
 		var job := _model.crafting.active_job(snapshot, _actor)
 		if not job.is_empty() and job.station_id == id: detail = "%s · %d%%" % [job.status, int(100 * job.elapsed / _model.crafting.recipes()[job.recipe_id].duration_seconds)]

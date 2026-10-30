@@ -59,6 +59,8 @@ Legend: **Locked** explicit user decision; **Provisional** direction but adjusta
 
 | D-044 | Provisional | #14: NPC shared commitment memory derives from Work outcomes; explicit acknowledgement is recorded per affected person without erasing failure or granting rewards. Kept work may enable an optional same-giver favor. No relationship score, mandatory progression or town-wide psychology is implied. |
 
+| D-045 | Provisional | #14 fishing: authored habitat/bait pools, seeded saved opportunities, short active-time reel windows, bait spent on cast, full-bag catches held for collection at the spot. Fish reuse ordinary inventory, trade and preparation. No ecology/gear grind or platform acceptance is implied. |
+
 ## Amendment rules
 1. Owner decisions outrank earlier assistant suggestions and example content.
 2. When a conflict arises, update this register and the affected GDD together.
