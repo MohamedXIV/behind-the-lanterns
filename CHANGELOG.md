@@ -26,6 +26,7 @@ For current system completeness and test/platform evidence, see [Implementation 
 ### Fixed
 - Corrected fractional position round-tripping to avoid invalid saved positions during spatial gameplay ([#17](https://github.com/MohamedXIV/behind-the-lanterns/pull/17)).
 - Rejected stale dialogue choices and ensured failed narrative handovers preserve goods, payment and conversation state ([#19](https://github.com/MohamedXIV/behind-the-lanterns/pull/19)).
+- Enforced strict Web save acknowledgment completion boundary in `WebSaveAck` and `RecoveryStore` so pending IndexedDB flushes never report premature save completion, concurrent saves are rejected with `web_save_in_flight`, and failed/timed-out/reloaded pending writes roll back to the previous confirmed A/B generation ([#26](https://github.com/MohamedXIV/behind-the-lanterns/pull/26)).
 
 ### Known limitations
 - These features are implemented in **disposable development content**, not a production-quality town or complete game.

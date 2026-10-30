@@ -325,15 +325,31 @@ func _save() -> void:
 	if not movement.ok:
 		_status.text = movement.code
 		return
-	var result := _store.save(_model.session)
-	_status.text = "Saved this world's goods, money and position." if result.ok else "Save failed: " + result.code
+	var result := _store.begin_save(_model.session) if _store.web_ack().is_web() else _store.save(_model.session)
+	if result.ok:
+		_status.text = "Saved this world's goods, money and position."
+	elif result.code == "web_sync_pending":
+		_status.text = "Syncing save to browser storage..."
+	else:
+		_status.text = "Save failed: " + result.code
 
 func _load() -> void:
+	if _store != null and _store.is_save_pending():
+		_status.text = "Load failed: web_save_in_flight"
+		return
 	var candidate := _store.load_candidate(_model.session)
 	if candidate == null or not _model.adopt(candidate):
 		_status.text = "Load failed: " + _store.last_error
 		return
 	_status.text = "Loaded the last valid save."
+
+func _process(delta: float) -> void:
+	if _store == null or not _store.is_save_pending(): return
+	var poll_res := _store.poll_save(maxi(1, int(round(delta * 1000.0))))
+	if poll_res.ok:
+		_status.text = "Saved this world's goods, money and position."
+	elif poll_res.code != "web_sync_pending":
+		_status.text = "Save failed: " + poll_res.code
 
 func _refresh(_revision: int) -> void:
 	if _targets == null or _targets.item_count == 0 or _bag == null: return

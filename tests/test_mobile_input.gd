@@ -77,25 +77,81 @@ func _test_web_persistence_ack(t) -> void:
 	t.check(not unavailable_store.save(s).ok and unavailable_store.last_error == "web_storage_unavailable", "non-persistent Web userfs rejects save")
 	t.check(unavailable_store.load_candidate(s) == null and unavailable_store.last_error == "web_storage_unavailable", "non-persistent Web userfs rejects load")
 
+	# Synchronous save() must NEVER report success when IndexedDB remains pending.
+	var always_pending_ack := WebSaveAck.new()
+	always_pending_ack.configure_simulated_web(
+		true,
+		func(_path, _bytes, _idb): return "pending",
+		func(_path, _bytes, _idb): return "pending"
+	)
+	var sync_pending_store := RecoveryStore.new(directory, always_pending_ack)
+	var sync_res := sync_pending_store.save(s)
+	t.check(not sync_res.ok and sync_res.code == "web_sync_pending", "synchronous save() rejects unconfirmed pending IndexedDB state")
+	t.check(not sync_pending_store.is_save_pending() and not always_pending_ack.is_dirty(), "rejected synchronous pending save rolls back and clears dirty guard")
+	t.check(sync_pending_store.load_candidate(s) == null, "unconfirmed synchronous save leaves no loadable candidate")
+
+	# Immediate confirmed Web save (generation 1 -> slot_a.json).
 	var web_ack := WebSaveAck.new()
 	web_ack.configure_simulated_web(true)
 	var store := RecoveryStore.new(directory, web_ack)
 	t.check(store.save(s).ok and web_ack.last_state() == "confirmed" and not web_ack.is_dirty(), "confirmed Web save flushes to simulated IndexedDB /userfs and clears dirty guard")
 	var slot_a_global := ProjectSettings.globalize_path(directory.path_join("slot_a.json"))
 	t.check(not web_ack.simulated_idb_bytes(slot_a_global).is_empty(), "IndexedDB FILE_DATA record written for slot_a.json")
+
+	# Delayed multi-poll IndexedDB confirmation (generation 2 -> slot_b.json).
 	s.advance_to(10)
-	t.check(store.save(s).ok and store.load_candidate(s).now() == 10, "second Web generation commits to slot_b.json and loads newest generation")
+	var polls: Array[int] = [0]
+	var delayed_ack := WebSaveAck.new()
+	delayed_ack.configure_simulated_web(
+		true,
+		func(_path, _bytes, _idb): return "pending",
+		func(path, bytes, idb):
+			polls[0] += 1
+			if polls[0] < 2:
+				return "pending"
+			idb[path] = bytes.duplicate()
+			return "confirmed"
+	)
+	var delayed_store := RecoveryStore.new(directory, delayed_ack, 1000)
+	var begin_res := delayed_store.begin_save(s)
+	t.check(not begin_res.ok and begin_res.code == "web_sync_pending" and delayed_store.is_save_pending() and delayed_ack.is_dirty(), "begin_save reports pending while IndexedDB transaction is in flight")
+	t.check(not delayed_store.save(s).ok and delayed_store.last_error == "web_save_in_flight", "concurrent save() rejected while Web save is in flight")
+	t.check(not delayed_store.begin_save(s).ok and delayed_store.last_error == "web_save_in_flight", "concurrent begin_save() rejected while Web save is in flight")
+	var during_pending := delayed_store.load_candidate(s)
+	t.check(during_pending != null and during_pending.now() == 0, "load_candidate ignores unconfirmed in-flight slot_b and returns confirmed slot_a")
+	var poll_1 := delayed_store.poll_save(200)
+	t.check(not poll_1.ok and poll_1.code == "web_sync_pending" and delayed_store.is_save_pending(), "first poll remains pending before IndexedDB commit")
+	var poll_2 := delayed_store.poll_save(200)
+	t.check(poll_2.ok and not delayed_store.is_save_pending() and not delayed_ack.is_dirty(), "second poll confirms IndexedDB commit and clears in-flight state")
+	t.check(delayed_store.load_candidate(s).now() == 10, "confirmed delayed Web save loads generation 2 from slot_b")
 
-	# Simulate an IndexedDB sync failure on generation 3: slot_a.json (gen 1) or slot_b.json (gen 2) must remain recoverable!
-	var failing_ack := WebSaveAck.new()
-	failing_ack.configure_simulated_web(true, func(_path, _bytes, _idb): return false)
-	var failing_store := RecoveryStore.new(directory, failing_ack)
+	# Timeout on generation 3 (overwriting slot_a.json in MEMFS) restores slot_a.json's confirmed gen 1 and preserves gen 2 in slot_b.json.
 	s.advance_to(20)
-	var failed_save := failing_store.save(s)
-	t.check(not failed_save.ok and failed_save.code == "web_sync_failed", "unacknowledged IndexedDB flush fails closed")
-	var recovered := store.load_candidate(s)
-	t.check(recovered != null and recovered.now() == 10, "failed Web sync rolls back unconfirmed slot and preserves previous generation")
+	var timeout_ack := WebSaveAck.new()
+	timeout_ack.configure_simulated_web(
+		true,
+		func(_path, _bytes, _idb): return "pending",
+		func(_path, _bytes, _idb): return "pending"
+	)
+	var timeout_store := RecoveryStore.new(directory, timeout_ack, 500)
+	t.check(timeout_store.begin_save(s).code == "web_sync_pending", "generation 3 starts pending")
+	var timeout_poll := timeout_store.poll_save(600)
+	t.check(not timeout_poll.ok and timeout_poll.code == "web_sync_timeout" and not timeout_store.is_save_pending(), "poll_save fails closed with web_sync_timeout when IndexedDB exceeds timeout")
+	t.check(store.load_candidate(s).now() == 10, "timed-out generation 3 rolls back slot_a to confirmed gen 1 and preserves gen 2 in slot_b")
 
-	for name in ["slot_a.json", "slot_b.json", "slot_a.json.tmp", "slot_b.json.tmp"]:
+	# Delayed failure on generation 3 also rolls back cleanly.
+	var fail_ack := WebSaveAck.new()
+	fail_ack.configure_simulated_web(
+		true,
+		func(_path, _bytes, _idb): return "pending",
+		func(_path, _bytes, _idb): return "failed"
+	)
+	var fail_store := RecoveryStore.new(directory, fail_ack, 1000)
+	t.check(fail_store.begin_save(s).code == "web_sync_pending", "generation 3 retry starts pending")
+	var fail_poll := fail_store.poll_save(100)
+	t.check(not fail_poll.ok and fail_poll.code == "web_sync_failed" and not fail_store.is_save_pending(), "delayed IndexedDB error fails closed with web_sync_failed")
+	t.check(store.load_candidate(s).now() == 10, "failed generation 3 preserves confirmed generation 2")
+
+	for name in ["slot_a.json", "slot_b.json", "slot_a.json.tmp", "slot_b.json.tmp", "slot_a.json.idb", "slot_b.json.idb"]:
 		DirAccess.remove_absolute(directory.path_join(name))
 	DirAccess.remove_absolute(directory)

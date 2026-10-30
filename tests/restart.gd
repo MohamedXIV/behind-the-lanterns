@@ -196,10 +196,21 @@ func _web_ack_restart(mode: String, directory: String) -> void:
 	if mode == "write":
 		expect(m.act("take-dates", "a:player", "a:supplies", "item.dates", 3, "take").ok and m.move_actor("walk-east", "a:player", 360, 160).ok, "gameplay mutation before Web-acknowledged save")
 		expect(store.save(m.session).ok and web_ack.last_state() == "confirmed", "Web-acknowledged save commits generation 1")
+		# Start a second save that remains pending when the process exits (simulating browser reload mid-flush).
+		expect(m.move_actor("unconfirmed-walk", "a:player", 500, 160).ok, "second mutation before interrupted pending Web save")
+		var pending_ack := WebSaveAck.new()
+		pending_ack.configure_simulated_web(
+			true,
+			func(_path, _bytes, _idb): return "pending",
+			func(_path, _bytes, _idb): return "pending"
+		)
+		var pending_store := RecoveryStore.new(directory, pending_ack)
+		expect(pending_store.begin_save(m.session).code == "web_sync_pending" and FileAccess.file_exists(directory.path_join("slot_b.json")), "unconfirmed slot_b exists in MEMFS before reload")
 	else:
-		expect(m.adopt(store.load_candidate(m.session)), "fresh process restores Web-acknowledged save")
-		expect(m.inventory.contents(m.session.snapshot(), "a:player").get("item.dates", 0) == 3 and m.position_of("a:player") == Vector2(360, 160), "custody and position restored across simulated browser reload")
-		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		expect(m.adopt(store.load_candidate(m.session)), "fresh process restores confirmed Web save and ignores unconfirmed pending slot")
+		expect(m.inventory.contents(m.session.snapshot(), "a:player").get("item.dates", 0) == 3 and m.position_of("a:player") == Vector2(360, 160), "custody and position restored to confirmed generation 1 across simulated browser reload")
+		for name in ["slot_a.json", "slot_b.json", "slot_a.json.idb", "slot_b.json.idb"]:
+			DirAccess.remove_absolute(directory.path_join(name))
 		DirAccess.remove_absolute(directory)
 	m.session.close()
 	print("WEB ACK RESTART " + mode + " checked")
