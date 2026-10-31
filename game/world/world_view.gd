@@ -11,10 +11,34 @@ signal combat_intent_triggered(action: String)
 signal feedback(text: String)
 var _route := PackedVector2Array()
 var _placement_preview: Dictionary = {}
+var _cutaway: BuildingCutaway = null
+var _visible_floor: int = 0
+var _last_cutaway_state: Dictionary = {}
 
 func set_placement_preview(property_id: String, cell_id: String, valid: bool) -> void:
 	_placement_preview = {"property_id": property_id, "cell_id": cell_id, "valid": valid}
 	queue_redraw()
+
+func set_building_cutaway(cutaway: BuildingCutaway) -> void:
+	_cutaway = cutaway
+	queue_redraw()
+
+func building_cutaway() -> BuildingCutaway:
+	return _cutaway
+
+func set_visible_floor(floor_index: int) -> void:
+	var max_floor := _cutaway.max_floor_index() if _cutaway != null else 1
+	_visible_floor = clampi(floor_index, 0, max_floor)
+	queue_redraw()
+
+func visible_floor() -> int:
+	return _visible_floor
+
+func cutaway_state() -> Dictionary:
+	if _cutaway == null or _model == null:
+		return {"active": false, "mode": "inactive", "visible_floor": _visible_floor, "local_occlusion": false}
+	return _cutaway.evaluate_state(_model.actor_region(_actor), _visual, _visible_floor)
+
 
 const PADDING: float = 28.0
 const PICK_RADIUS: float = 28.0
@@ -160,6 +184,16 @@ func _draw() -> void:
 		draw_line(world_to_local(Vector2(x, 0)), world_to_local(Vector2(x, extent.y)), Color("263b3b"))
 	for y in range(0, int(extent.y) + 1, GRID_STEP):
 		draw_line(world_to_local(Vector2(0, y)), world_to_local(Vector2(extent.x, y)), Color("263b3b"))
+	var cstate := cutaway_state()
+	_last_cutaway_state = cstate
+	var is_exterior_cutaway := bool(cstate.get("active", false)) and _model.actor_region(_actor) == _cutaway.exterior_region()
+	var is_interior_cutaway := bool(cstate.get("active", false)) and _model.actor_region(_actor) == _cutaway.interior_region()
+	if is_interior_cutaway:
+		_draw_cutaway_layer("shell", float(cstate.get("shell_alpha", 0.0)))
+		_draw_cutaway_layer("interior", float(cstate.get("interior_alpha", 0.0)))
+	elif is_exterior_cutaway:
+		_draw_cutaway_backdrop("shell", float(cstate.get("shell_alpha", 0.0)))
+		_draw_cutaway_backdrop("interior", float(cstate.get("interior_alpha", 0.0)))
 	for block in _geometry().blocks:
 		draw_rect(Rect2(world_to_local(block.position), block.size * _scale_factor()), Color("536451"))
 	if _model.housing != null:
@@ -180,9 +214,13 @@ func _draw() -> void:
 	var snapshot := _model.session.snapshot()
 	var font := get_theme_default_font()
 	var visible := _model.interactions.target_ids()
-	visible.sort_custom(func(a, b): return _model.position_of(a).y < _model.position_of(b).y)
+	visible.sort_custom(func(a, b): return _y_sort_of(a) < _y_sort_of(b))
+	var actor_drawn := false
 	for id in visible:
 		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id or not _model.position_of(id).is_finite(): continue
+		if not actor_drawn and _visual.y <= _y_sort_of(id):
+			_draw_actor(font)
+			actor_drawn = true
 		var at := world_to_local(_model.position_of(id))
 		var color := Color("d8b777") if _model.inventory.can_access(_actor, id) else Color("a67d88")
 		if _model.commerce.is_shop(id): color = Color("9bbf91")
@@ -191,7 +229,12 @@ func _draw() -> void:
 		var npc := _model.npcs.projection(id, snapshot.minute)
 		if not npc.is_empty() and not npc.available: color = Color("6e8582")
 		draw_ellipse_shadow(at)
-		if _model.fishing != null and _model.fishing.spots().has(id):
+		if _cutaway != null and _cutaway.has_furnishing_sprite(id):
+			var fspec := _cutaway.furnishing_spec(id)
+			var ftex := _cutaway.furnishing_texture(id)
+			var top_left := world_to_local(_model.position_of(id) - Vector2(float(fspec.origin.x), float(fspec.origin.y)))
+			draw_texture_rect(ftex, Rect2(top_left, Vector2(float(fspec.width), float(fspec.height)) * _scale_factor()), false)
+		elif _model.fishing != null and _model.fishing.spots().has(id):
 			draw_circle(at, 22, Color("254d60"))
 			draw_arc(at, 18, 0, TAU, 32, Color("85d4dc"), 2)
 			draw_circle(at + Vector2(0, -5), 3, Color("f5d48d"))
@@ -226,13 +269,51 @@ func _draw() -> void:
 		var job := _model.crafting.active_job(snapshot, _actor)
 		if not job.is_empty() and job.station_id == id: detail = "%s · %d%%" % [job.status, int(100 * job.elapsed / _model.crafting.recipes()[job.recipe_id].duration_seconds)]
 		draw_string(font, at + Vector2(-80, 42), detail, HORIZONTAL_ALIGNMENT_CENTER, 160, 14, Color("b4c7c3"))
+	if not actor_drawn:
+		_draw_actor(font)
+	if is_interior_cutaway:
+		_draw_cutaway_layer("front_wall", float(cstate.get("front_wall_alpha", 0.0)))
+		_draw_cutaway_layer("upper_floor", float(cstate.get("upper_floor_alpha", 0.0)))
+		_draw_cutaway_layer("roof", float(cstate.get("roof_alpha", 0.0)))
+	elif is_exterior_cutaway:
+		_draw_cutaway_backdrop("front_wall", float(cstate.get("front_wall_alpha", 0.0)))
+		_draw_cutaway_backdrop("upper_floor", float(cstate.get("upper_floor_alpha", 0.0)))
+		_draw_cutaway_backdrop("roof", float(cstate.get("roof_alpha", 0.0)))
 	var nearby := nearby_target()
 	if not nearby.is_empty():
 		draw_string(font, Vector2(16, size.y - 16), "E / Use: " + str(_labels.get(nearby, nearby)), HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("ffe3a1"))
+
+func _y_sort_of(entity_id: String) -> float:
+	var pos := _model.position_of(entity_id)
+	return pos.y if pos.is_finite() else INF
+
+func _draw_actor(font: Font) -> void:
 	var actor_at := world_to_local(_visual)
+	draw_ellipse_shadow(actor_at)
 	draw_arc(actor_at, _model.interactions.reach() * _scale_factor(), 0, TAU, 48, Color(0.55, 0.85, 0.85, 0.22), 1)
 	draw_circle(actor_at, 10, Color("8bd0d1"))
 	draw_string(font, actor_at + Vector2(-24, 30), "You", HORIZONTAL_ALIGNMENT_CENTER, 48, 16, Color("c4f4ef"))
+
+func _draw_cutaway_layer(layer_name: String, alpha: float) -> void:
+	if _cutaway == null or alpha <= 0.001: return
+	var tex := _cutaway.layer_texture(layer_name)
+	if tex == null: return
+	var rect_world := _cutaway.canvas_rect_world()
+	var dst := Rect2(world_to_local(rect_world.position), rect_world.size * _scale_factor())
+	draw_texture_rect(tex, dst, false, Color(1, 1, 1, clampf(alpha, 0.0, 1.0)))
+
+func _draw_cutaway_backdrop(layer_name: String, alpha: float) -> void:
+	if _cutaway == null or alpha <= 0.001: return
+	var tex := _cutaway.layer_texture(layer_name)
+	if tex == null: return
+	var eave := _cutaway.exterior_eave_rect()
+	var rect_world := _cutaway.canvas_rect_world()
+	var clip_w := eave.size.x + 28.0
+	var clip_h := eave.size.y + 72.0
+	var src := Rect2(Vector2.ZERO, Vector2(minf(clip_w, float(tex.get_width())), minf(clip_h, float(tex.get_height()))))
+	var dst := Rect2(world_to_local(rect_world.position), src.size * _scale_factor())
+	draw_texture_rect_region(tex, dst, src, Color(1, 1, 1, clampf(alpha, 0.0, 1.0)))
+
 
 func _quantity(snapshot: Dictionary, holder: String) -> int:
 	var amount: int = 0

@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "fixture_id": "building.inn_pavilion",
+  "noncanonical": true,
+  "projection": {
+    "kind": "elevated_3_4_oblique",
+    "true_isometric": false,
+    "world_to_pixel_scale": 1.0,
+    "elevation_pixel_scale": 1.0,
+    "camera_pitch_deg": 45.0,
+    "camera_yaw_deg": 0.0
+  },
+  "canvas": {
+    "origin_world": {
+      "x": 4.0,
+      "y": -62.0
+    },
+    "width": 684,
+    "height": 434
+  },
+  "footprint": {
+    "x": 16,
+    "y": 14,
+    "width": 660,
+    "height": 346
+  },
+  "regions": {
+    "exterior_region": "region.playground",
+    "interior_region": "region.inn",
+    "property_id": "property.inn"
+  },
+  "floors": [
+    {
+      "floor_index": 0,
+      "label": "Ground floor (Courtyard & Inn Room)",
+      "z_base": 0,
+      "wall_height": 36
+    },
+    {
+      "floor_index": 1,
+      "label": "Upper roof terrace & parapet",
+      "z_base": 36,
+      "wall_height": 18
+    }
+  ],
+  "openings": {
+    "courtyard_door": {
+      "exterior_portal_id": "a:inn-door",
+      "interior_portal_id": "a:inn-exit",
+      "wall": "south",
+      "x": 24,
+      "width": 36,
+      "z_bottom": 0,
+      "z_top": 30,
+      "exterior_anchor": {
+        "x": 40,
+        "y": 60
+      },
+      "interior_anchor": {
+        "x": 100,
+        "y": 300
+      }
+    },
+    "south_mashrabiya_west": {
+      "wall": "south",
+      "x": 180,
+      "width": 84,
+      "z_bottom": 10,
+      "z_top": 28
+    },
+    "south_mashrabiya_east": {
+      "wall": "south",
+      "x": 440,
+      "width": 84,
+      "z_bottom": 10,
+      "z_top": 28
+    },
+    "north_vent_window": {
+      "wall": "north",
+      "x": 310,
+      "width": 72,
+      "z_bottom": 12,
+      "z_top": 28
+    }
+  },
+  "occlusion_zones": {
+    "exterior_eave_occluder": {
+      "x": 16,
+      "y": 14,
+      "width": 120,
+      "height": 74,
+      "fade_alpha": 0.28
+    },
+    "interior_front_wall_band": {
+      "x": 16,
+      "y": 252,
+      "width": 660,
+      "height": 108,
+      "fade_alpha": 0.22
+    }
+  },
+  "layers": {
+    "shell": "res://dev/art/cutaway_fixture/layer_shell.png",
+    "interior": "res://dev/art/cutaway_fixture/layer_interior.png",
+    "front_wall": "res://dev/art/cutaway_fixture/layer_front_wall.png",
+    "roof": "res://dev/art/cutaway_fixture/layer_roof.png",
+    "upper_floor": "res://dev/art/cutaway_fixture/layer_upper_floor.png"
+  },
+  "furnishings": {
+    "a:housing-chest": {
+      "kind": "chest",
+      "texture": "res://dev/art/cutaway_fixture/prop_chest.png",
+      "width": 48,
+      "height": 44,
+      "origin": {
+        "x": 24,
+        "y": 27
+      },
+      "footprint": {
+        "width": 40,
+        "height": 30
+      }
+    },
+    "a:lamp": {
+      "kind": "lamp",
+      "texture": "res://dev/art/cutaway_fixture/prop_lamp.png",
+      "width": 36,
+      "height": 42,
+      "origin": {
+        "x": 18,
+        "y": 28
+      },
+      "footprint": {
+        "width": 24,
+        "height": 24
+      }
+    },
+    "a:cushion": {
+      "kind": "cushion",
+      "texture": "res://dev/art/cutaway_fixture/prop_cushion.png",
+      "width": 36,
+      "height": 32,
+      "origin": {
+        "x": 18,
+        "y": 18
+      },
+      "footprint": {
+        "width": 24,
+        "height": 24
+      }
+    }
+  },
+  "proof_sheet": "res://dev/art/cutaway_fixture/cutaway_proof_sheet.png"
+}

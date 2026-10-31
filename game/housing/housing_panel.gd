@@ -2,6 +2,7 @@ class_name HousingPanel
 extends VBoxContainer
 ## Tap furnishing, tap an authored space, preview, then confirm. No drag precision.
 signal preview_changed(property_id: String, cell_id: String, valid: bool)
+signal floor_selected(floor_index: int)
 var _model: GameplayModel
 var _actor: String
 var _prepare: Callable
@@ -9,18 +10,23 @@ var _sync: Callable
 var _property: OptionButton
 var _furnishing: OptionButton
 var _cell: OptionButton
+var _floor: OptionButton
+var _cutaway_status: Label
 var _status: Label
 var _preview: Label
 var _feedback: Label
 var _acquire: Button
 var _place: Button
 var _pack: Button
+var _cutaway_summary_provider: Callable
 
-func configure(model: GameplayModel, actor: String, prepare: Callable, sync: Callable) -> void:
+
+func configure(model: GameplayModel, actor: String, prepare: Callable, sync: Callable, cutaway_summary_provider: Callable = Callable()) -> void:
 	_model = model
 	_actor = actor
 	_prepare = prepare
 	_sync = sync
+	_cutaway_summary_provider = cutaway_summary_provider
 	add_theme_constant_override("separation", 8)
 	_status = _label("Housing & belongings")
 	_property = _option("HousingProperty")
@@ -30,6 +36,14 @@ func configure(model: GameplayModel, actor: String, prepare: Callable, sync: Cal
 	_property.item_selected.connect(func(_index): _rebuild_cells(); refresh())
 	_acquire = _button("AcquireHousing", "", _get_access)
 	_label("Start in the stable workshop. Approach the merchant to arrange optional access; use each room's courtyard door.")
+	_floor = _option("VisibleFloor")
+	_floor.add_item("Visible floor: Ground (0)")
+	_floor.set_item_metadata(0, "0")
+	_floor.add_item("Visible floor: Upper terrace (1)")
+	_floor.set_item_metadata(1, "1")
+	_floor.item_selected.connect(func(idx): floor_selected.emit(idx); refresh())
+	_cutaway_status = _label("")
+	_cutaway_status.name = "CutawayStatus"
 	_furnishing = _option("HousingFurnishing")
 	for id in _model.housing.furnishings():
 		if _model.housing.furnishings()[id].owner_id != actor: continue
@@ -46,6 +60,7 @@ func configure(model: GameplayModel, actor: String, prepare: Callable, sync: Cal
 	_feedback.name = "HousingFeedback"
 	_rebuild_cells()
 	refresh()
+
 
 func _option(id: String) -> OptionButton:
 	var option := OptionButton.new()
@@ -99,9 +114,13 @@ func refresh() -> void:
 	var location: String = "packed" if placement.property_id == "" else _model.housing.properties()[placement.property_id].label + " / " + placement.cell_id
 	var error := _model.housing.placement_error(snapshot, _actor, id, property_id, _selected(_cell))
 	_preview.text = "Selected: %s\nCurrently: %s\nPreview: %s" % [_model.housing.furnishings()[id].label, location, "Space available — confirm to place" if error == "" else error.replace("_", " ")]
+	if _cutaway_status != null and _cutaway_summary_provider.is_valid():
+		var cstate: Dictionary = _cutaway_summary_provider.call()
+		_cutaway_status.text = "Building view: %s · floor %d · occlusion %s" % [str(cstate.get("mode", "inactive")), int(cstate.get("visible_floor", 0)), "faded" if bool(cstate.get("local_occlusion", false)) else "clear"]
 	_place.disabled = error != ""
 	_pack.disabled = not _model.housing.usable(snapshot, _actor, id)
 	preview_changed.emit(property_id, _selected(_cell), error == "")
+
 
 func _intent() -> String:
 	return "housing:%d" % _model.session.snapshot().revision

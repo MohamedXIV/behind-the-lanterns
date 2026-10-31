@@ -11,6 +11,9 @@ Enterable buildings should preserve coherent interior and exterior footprints. K
 
 Use global **floor index/visibility** independently of camera-side **occlusion**. Roofs, front walls, slabs, and partitions hide/fade where they block the current player view. Floors can be managed globally in a Sims-like fashion; occlusion remains a separate problem. Specific renderer implementation is TBD for Godot.
 
+**Implementation subset (#8 / #14, 31 October 2026):** `D-051` and [BUILDING-CUTAWAY.md](technical/BUILDING-CUTAWAY.md) validate a disposable noncanonical 3/4 oblique building (`building.inn_pavilion`) with matching exterior/interior footprints, separable `shell`/`interior`/`front_wall`/`roof`/`upper_floor` 2D passes, detachable furniture sprites (`a:housing-chest`, `a:lamp`, `a:cushion`), and independent global `visible_floor` vs local player-relative roof/front-wall occlusion in `BuildingCutaway` + `WorldView`. Final pixel density (PPU), shipping art bible, and canonical building catalog remain open for owner approval.
+
+
 ## Art production pipeline (direction, not dependency)
 Early attempts at independent AI exterior/interior generation suffered projection drift and geometry inconsistency. Preferred authoring strategy:
 `parametric 3D blockout in Blender (Python / Geometry Nodes / Buildify as appropriate) → fixed orthographic camera and matching interior/exterior passes → stylization/cleanup → coherent 2D sprite assets → Godot`.

@@ -9,7 +9,9 @@ For current system completeness and test/platform evidence, see [Implementation 
 ## [Unreleased]
 
 ### Added
-- Optional lodging/property access and touch-friendly constrained furniture placement, with valid-space previews, physical collision, and stable full-chest storage identity across packing, relocation and saves ([#14](https://github.com/MohamedXIV/behind-the-lanterns/issues/14), [#9](https://github.com/MohamedXIV/behind-the-lanterns/issues/9)).
+- Reproducible 2D building authoring and cutaway presentation proof (`BuildingCutaway`, `WorldView`, `tools/build-cutaway-assets.py`, `tools/blender_building_blockout.py`, `dev/art/building_fixture_spec.json`), with matching exterior/interior footprints in fixed elevated 3/4 oblique projection, separable `shell`/`interior`/`front_wall`/`roof`/`upper_floor` layers, detachable furnishing sprites (`a:housing-chest`, `a:lamp`, `a:cushion`), and independent global `visible_floor` selection vs local eave/front-wall occlusion ([#8](https://github.com/MohamedXIV/behind-the-lanterns/issues/8), [#14](https://github.com/MohamedXIV/behind-the-lanterns/issues/14)).
+- Optional lodging/property access and touch-friendly constrained furniture placement, with valid-space previews, physical collision, and stable full-chest storage identity across packing, relocation and saves ([#14](https://github.com/MohamedXIV/behind-the-lanterns/issues/14), [#9](https://github.com/MohamedXIV/behind-the-lanterns/issues/9), [#29](https://github.com/MohamedXIV/behind-the-lanterns/pull/29)).
+
 - Transactional world sessions, scheduled consequential events, stable entity IDs, and native save/recovery ([#11](https://github.com/MohamedXIV/behind-the-lanterns/pull/11)).
 - Collecting finite supplies, capacity-limited inventory and storage, merchant stock, and atomic buy/sell interactions ([#13](https://github.com/MohamedXIV/behind-the-lanterns/pull/13)).
 - Optional funded delivery work, active-play preparation with ingredient reservations, deadlines, and NPC schedule availability ([#15](https://github.com/MohamedXIV/behind-the-lanterns/pull/15)).

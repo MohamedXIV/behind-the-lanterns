@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "fixture_id": "building.inn_pavilion",
+  "noncanonical": true,
+  "description": "Disposable 3/4 oblique architectural fixture proving exterior/interior footprint correspondence, separable occluder passes, global floor visibility, and detachable furnishing sprites.",
+  "projection": {
+    "kind": "elevated_3_4_oblique",
+    "true_isometric": false,
+    "world_to_pixel_scale": 1.0,
+    "elevation_pixel_scale": 1.0,
+    "camera_pitch_deg": 45.0,
+    "camera_yaw_deg": 0.0
+  },
+  "footprint": {
+    "x": 16,
+    "y": 14,
+    "width": 660,
+    "height": 346
+  },
+  "regions": {
+    "exterior_region": "region.playground",
+    "interior_region": "region.inn",
+    "property_id": "property.inn"
+  },
+  "floors": [
+    {
+      "floor_index": 0,
+      "label": "Ground floor (Courtyard & Inn Room)",
+      "z_base": 0,
+      "wall_height": 36
+    },
+    {
+      "floor_index": 1,
+      "label": "Upper roof terrace & parapet",
+      "z_base": 36,
+      "wall_height": 18
+    }
+  ],
+  "openings": {
+    "courtyard_door": {
+      "exterior_portal_id": "a:inn-door",
+      "interior_portal_id": "a:inn-exit",
+      "wall": "south",
+      "x": 24,
+      "width": 36,
+      "z_bottom": 0,
+      "z_top": 30,
+      "exterior_anchor": { "x": 40, "y": 60 },
+      "interior_anchor": { "x": 100, "y": 300 }
+    },
+    "south_mashrabiya_west": {
+      "wall": "south",
+      "x": 180,
+      "width": 84,
+      "z_bottom": 10,
+      "z_top": 28
+    },
+    "south_mashrabiya_east": {
+      "wall": "south",
+      "x": 440,
+      "width": 84,
+      "z_bottom": 10,
+      "z_top": 28
+    },
+    "north_vent_window": {
+      "wall": "north",
+      "x": 310,
+      "width": 72,
+      "z_bottom": 12,
+      "z_top": 28
+    }
+  },
+  "occlusion_zones": {
+    "exterior_eave_occluder": {
+      "x": 16,
+      "y": 14,
+      "width": 120,
+      "height": 74,
+      "fade_alpha": 0.28
+    },
+    "interior_front_wall_band": {
+      "x": 16,
+      "y": 252,
+      "width": 660,
+      "height": 108,
+      "fade_alpha": 0.22
+    }
+  },
+  "wall_thickness": 12,
+  "palette": {
+    "limestone_light": "#d9c7a3",
+    "limestone_mid": "#c2ab83",
+    "limestone_dark": "#9a825c",
+    "plaster_warm": "#e5d7b8",
+    "plaster_shadow": "#b39c78",
+    "mortar_line": "#7d6849",
+    "timber_cedar": "#6e472b",
+    "timber_dark": "#4a2e1b",
+    "timber_highlight": "#8f613e",
+    "tile_terracotta": "#b86b43",
+    "tile_ochre": "#cf9455",
+    "tile_slate": "#385254",
+    "tile_grout": "#5c4938",
+    "awning_teal": "#2e6f73",
+    "awning_gold": "#d9a74a",
+    "awning_crimson": "#9e4238",
+    "brass_lantern": "#f2c15a",
+    "lantern_glow": "#ffe89e",
+    "shadow_ tint": "#121f22"
+  },
+  "detachable_furnishings": {
+    "a:housing-chest": {
+      "kind": "chest",
+      "footprint_width": 40,
+      "footprint_height": 30,
+      "elevation_height": 16,
+      "canvas_width": 48,
+      "canvas_height": 44,
+      "origin_x": 24,
+      "origin_y": 27
+    },
+    "a:lamp": {
+      "kind": "lamp",
+      "footprint_width": 24,
+      "footprint_height": 24,
+      "elevation_height": 22,
+      "canvas_width": 36,
+      "canvas_height": 42,
+      "origin_x": 18,
+      "origin_y": 28
+    },
+    "a:cushion": {
+      "kind": "cushion",
+      "footprint_width": 24,
+      "footprint_height": 24,
+      "elevation_height": 8,
+      "canvas_width": 36,
+      "canvas_height": 32,
+      "origin_x": 18,
+      "origin_y": 18
+    }
+  }
+}
