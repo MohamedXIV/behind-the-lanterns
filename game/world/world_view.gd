@@ -10,6 +10,11 @@ signal talk_requested()
 signal combat_intent_triggered(action: String)
 signal feedback(text: String)
 var _route := PackedVector2Array()
+var _placement_preview: Dictionary = {}
+
+func set_placement_preview(property_id: String, cell_id: String, valid: bool) -> void:
+	_placement_preview = {"property_id": property_id, "cell_id": cell_id, "valid": valid}
+	queue_redraw()
 
 const PADDING: float = 28.0
 const PICK_RADIUS: float = 28.0
@@ -100,7 +105,7 @@ func _tap(point: Vector2) -> void:
 	var distance: float = PICK_RADIUS
 	var snapshot := _model.session.snapshot()
 	for id in _model.interactions.target_ids():
-		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id: continue
+		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id or not _model.position_of(id).is_finite(): continue
 		var separation := _model.position_of(id).distance_to(_goal)
 		if separation < distance:
 			closest = id
@@ -108,6 +113,11 @@ func _tap(point: Vector2) -> void:
 	if not closest.is_empty():
 		selected_target = closest
 		target_selected.emit(closest)
+	if not closest.is_empty() and _model.housing != null and closest in _model.housing.furnishings():
+		var placed: Dictionary = snapshot.domains.housing.placements[closest]
+		if placed.property_id != "":
+			var cell: Dictionary = _model.housing.properties()[placed.property_id].cells[placed.cell_id]
+			_goal = Vector2(cell.x + cell.width / 2.0, cell.y + cell.height + _geometry().radius + 2)
 	_route = _geometry().route(_visual, _goal)
 	_pointer_walking = not _route.is_empty()
 	if not _pointer_walking: feedback.emit("No clear route there. Choose open ground.")
@@ -152,6 +162,17 @@ func _draw() -> void:
 		draw_line(world_to_local(Vector2(0, y)), world_to_local(Vector2(extent.x, y)), Color("263b3b"))
 	for block in _geometry().blocks:
 		draw_rect(Rect2(world_to_local(block.position), block.size * _scale_factor()), Color("536451"))
+	if _model.housing != null:
+		var property_id := _model.housing.property_for(_model.actor_region(_actor))
+		if property_id != "":
+			var index := 1
+			for cell_id in _model.housing.properties()[property_id].cells:
+				var cell: Dictionary = _model.housing.properties()[property_id].cells[cell_id]
+				if _placement_preview.get("property_id", "") == property_id and _placement_preview.get("cell_id", "") == cell_id:
+					draw_rect(Rect2(world_to_local(Vector2(cell.x, cell.y)), Vector2(cell.width, cell.height) * _scale_factor()), Color(0.3, 0.8, 0.4, 0.4) if _placement_preview.valid else Color(0.9, 0.2, 0.2, 0.4))
+				draw_rect(Rect2(world_to_local(Vector2(cell.x, cell.y)), Vector2(cell.width, cell.height) * _scale_factor()), Color("9cbb93"), false, 2)
+				draw_string(get_theme_default_font(), world_to_local(Vector2(cell.x, cell.y)) - Vector2(0, 6), str(index), HORIZONTAL_ALIGNMENT_LEFT, -1, 16)
+				index += 1
 	var path_start := world_to_local(_visual)
 	for point in _route:
 		draw_line(path_start, world_to_local(point), Color("e2c58d"), 2)
@@ -161,7 +182,7 @@ func _draw() -> void:
 	var visible := _model.interactions.target_ids()
 	visible.sort_custom(func(a, b): return _model.position_of(a).y < _model.position_of(b).y)
 	for id in visible:
-		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id: continue
+		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id or not _model.position_of(id).is_finite(): continue
 		var at := world_to_local(_model.position_of(id))
 		var color := Color("d8b777") if _model.inventory.can_access(_actor, id) else Color("a67d88")
 		if _model.commerce.is_shop(id): color = Color("9bbf91")
@@ -242,10 +263,10 @@ func nearby_target() -> String:
 	var distance := _model.interactions.reach()
 	var snapshot := _model.session.snapshot()
 	for id in _model.interactions.target_ids():
-		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id: continue
+		if id == _actor or snapshot.entities[id].region_id != snapshot.entities[_actor].region_id or not _model.position_of(id).is_finite(): continue
 		var point := _model.position_of(id)
 		var separation := _visual.distance_to(point)
-		if separation <= distance and _geometry().clear_segment(_visual, point):
+		if separation <= distance and _model.interactions.reach_geometry(snapshot, _model.actor_region(_actor), id).clear_segment(_visual, point):
 			best = id
 			distance = separation
 	return best
@@ -259,7 +280,7 @@ func use_nearby() -> void:
 		use_requested.emit(id)
 
 func _geometry() -> WorldGeometry:
-	return _model.interactions.geometry_for(_model.actor_region(_actor))
+	return _model.interactions.movement_geometry(_model.session.snapshot(), _model.actor_region(_actor))
 
 func draw_ellipse_shadow(at: Vector2) -> void:
 	draw_set_transform(at, 0, Vector2(1, 0.35))

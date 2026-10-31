@@ -7,7 +7,9 @@
       "region.alcove",
       "region.river",
       "region.watchhouse",
-      "region.estuary"
+      "region.estuary",
+      "region.inn",
+      "region.home"
     ],
     "definitions": [
       "actor.resident",
@@ -153,6 +155,34 @@
       "a:waystation-caravan": {
         "definition_id": "actor.carrier",
         "region_id": "region.remote"
+      },
+      "a:inn-door": {
+        "definition_id": "object.door",
+        "region_id": "region.playground"
+      },
+      "a:inn-exit": {
+        "definition_id": "object.door",
+        "region_id": "region.inn"
+      },
+      "a:home-door": {
+        "definition_id": "object.door",
+        "region_id": "region.playground"
+      },
+      "a:home-exit": {
+        "definition_id": "object.door",
+        "region_id": "region.home"
+      },
+      "a:housing-chest": {
+        "definition_id": "object.storage",
+        "region_id": "region.workshop"
+      },
+      "a:lamp": {
+        "definition_id": "object.storage",
+        "region_id": "region.workshop"
+      },
+      "a:cushion": {
+        "definition_id": "object.storage",
+        "region_id": "region.workshop"
       }
     },
     "facts": {
@@ -260,6 +290,12 @@
         "items": {}
       },
       "a:indoor-chest": {
+        "slots": 8,
+        "owner_id": "a:player",
+        "access": "owner",
+        "items": {}
+      },
+      "a:housing-chest": {
         "slots": 8,
         "owner_id": "a:player",
         "access": "owner",
@@ -452,6 +488,34 @@
       "a:waystation-caravan": {
         "x": 360,
         "y": 220
+      },
+      "a:inn-door": {
+        "x": 40,
+        "y": 60
+      },
+      "a:inn-exit": {
+        "x": 100,
+        "y": 330
+      },
+      "a:home-door": {
+        "x": 40,
+        "y": 250
+      },
+      "a:home-exit": {
+        "x": 100,
+        "y": 330
+      },
+      "a:housing-chest": {
+        "x": 208,
+        "y": 60
+      },
+      "a:lamp": {
+        "x": 308,
+        "y": 60
+      },
+      "a:cushion": {
+        "x": 508,
+        "y": 60
       }
     },
     "geometry": {
@@ -503,6 +567,14 @@
       "region.remote": {
         "radius": 10,
         "obstacles": []
+      },
+      "region.inn": {
+        "radius": 10,
+        "obstacles": []
+      },
+      "region.home": {
+        "radius": 10,
+        "obstacles": []
       }
     },
     "portals": {
@@ -540,6 +612,26 @@
         "region_id": "region.playground",
         "x": 480,
         "y": 340
+      },
+      "a:inn-door": {
+        "region_id": "region.inn",
+        "x": 100,
+        "y": 300
+      },
+      "a:inn-exit": {
+        "region_id": "region.playground",
+        "x": 40,
+        "y": 60
+      },
+      "a:home-door": {
+        "region_id": "region.home",
+        "x": 100,
+        "y": 300
+      },
+      "a:home-exit": {
+        "region_id": "region.playground",
+        "x": 40,
+        "y": 250
       }
     }
   },
@@ -576,7 +668,14 @@
       "a:boatman": "Public packet boatman",
       "a:caravan-leader": "Public caravan leader",
       "a:estuary-boatman": "Estuary packet boatman",
-      "a:waystation-caravan": "Waystation caravan leader"
+      "a:waystation-caravan": "Waystation caravan leader",
+      "a:inn-door": "Optional inn room",
+      "a:inn-exit": "Courtyard",
+      "a:home-door": "Modest owned room",
+      "a:home-exit": "Courtyard",
+      "a:housing-chest": "Travelling storage chest",
+      "a:lamp": "Small lamp",
+      "a:cushion": "Woven cushion"
     },
     "region_labels": {
       "region.playground": "Courtyard",
@@ -585,7 +684,9 @@
       "region.river": "Riverbank",
       "region.watchhouse": "Watchhouse",
       "region.estuary": "Estuary Quay",
-      "region.remote": "Red Dune Waystation"
+      "region.remote": "Red Dune Waystation",
+      "region.inn": "Optional inn room",
+      "region.home": "Modest owned room"
     },
     "default_item": "item.dates"
   },
@@ -1046,7 +1147,7 @@
         }
       },
       "a:detainee": {
-        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"^The detained porter leans against the cool watchhouse wall. \\\"No blades here, friend — the watch just locks the latch until the fine is paid or the hours pass.\\\"\",\"\\n\",\"ev\",\"str\",\"^Ask what rumors pass through the watchhouse.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},\"ev\",\"str\",\"^Leave him to rest.\",\"/str\",\"/ev\",{\"*\":\".^.c-1\",\"flg\":4},{\"c-0\":[\"\\n\",\"ev\",{\"VAR?\":\"found_passage\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"You already walked the workshop side passage yourself? Then you know the rumor is older than the lock on this door.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"A boatman in the holding room swore a side passage beyond the workshop leads to a singing spring.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",\"#\",\"^command:passage_rumor\",\"/#\",\"#\",\"^command:water_rumor\",\"/#\",{\"->\":\"farewell\"},null],\"c-1\":[\"\\n\",\"end\",null]}],null],\"farewell\":[[\"ev\",\"str\",\"^Wish him an early release.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"found_passage\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
+        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"^The detained porter leans against the cool watchhouse wall. \\\"No blades here, friend \u2014 the watch just locks the latch until the fine is paid or the hours pass.\\\"\",\"\\n\",\"ev\",\"str\",\"^Ask what rumors pass through the watchhouse.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},\"ev\",\"str\",\"^Leave him to rest.\",\"/str\",\"/ev\",{\"*\":\".^.c-1\",\"flg\":4},{\"c-0\":[\"\\n\",\"ev\",{\"VAR?\":\"found_passage\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"You already walked the workshop side passage yourself? Then you know the rumor is older than the lock on this door.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"A boatman in the holding room swore a side passage beyond the workshop leads to a singing spring.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",\"#\",\"^command:passage_rumor\",\"/#\",\"#\",\"^command:water_rumor\",\"/#\",{\"->\":\"farewell\"},null],\"c-1\":[\"\\n\",\"end\",null]}],null],\"farewell\":[[\"ev\",\"str\",\"^Wish him an early release.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"found_passage\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
         "queries": {
           "found_passage": {
             "kind": "confirmed",
@@ -1069,7 +1170,7 @@
   "fishing": {
     "spots": {
       "a:reed-bank": {
-        "label": "Quiet reed bank · grain attracts small fish",
+        "label": "Quiet reed bank \u00b7 grain attracts small fish",
         "bite_ms": 2000,
         "window_ms": 1200,
         "pool": [
@@ -1086,7 +1187,7 @@
         ]
       },
       "a:deep-pool": {
-        "label": "Deep channel · date bait for catfish",
+        "label": "Deep channel \u00b7 date bait for catfish",
         "bite_ms": 2500,
         "window_ms": 1500,
         "pool": [
@@ -1103,28 +1204,28 @@
     "max_skill": 3,
     "plots": {
       "a:garden-plot": {
-        "label": "Courtyard garden plot · sunny loam",
+        "label": "Courtyard garden plot \u00b7 sunny loam",
         "access": "owner",
         "owner_id": "a:player",
         "environment": "courtyard",
         "soil": "loam"
       },
       "a:sandy-plot": {
-        "label": "Sandy courtyard bed · dry sandy soil",
+        "label": "Sandy courtyard bed \u00b7 dry sandy soil",
         "access": "owner",
         "owner_id": "a:player",
         "environment": "courtyard",
         "soil": "sandy"
       },
       "a:merchant-plot": {
-        "label": "Merchant's private planter · sunny loam",
+        "label": "Merchant's private planter \u00b7 sunny loam",
         "access": "owner",
         "owner_id": "a:merchant",
         "environment": "courtyard",
         "soil": "loam"
       },
       "a:river-bed": {
-        "label": "Riverbank silt bed · wet river silt",
+        "label": "Riverbank silt bed \u00b7 wet river silt",
         "access": "public",
         "owner_id": "",
         "environment": "riverbank",
@@ -1280,6 +1381,177 @@
         "fare": 3,
         "duration_minutes": 300,
         "log": "The return caravan follows old stone markers across the dunes and reaches the courtyard by the familiar lamps."
+      }
+    }
+  },
+  "housing": {
+    "properties": {
+      "property.stable": {
+        "label": "Stable accommodation",
+        "region_id": "region.workshop",
+        "provider_id": "a:merchant",
+        "price": 0,
+        "initial_resident": "a:player",
+        "cells": {
+          "cell.0": {
+            "x": 180,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.1": {
+            "x": 280,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.2": {
+            "x": 480,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.3": {
+            "x": 580,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.4": {
+            "x": 480,
+            "y": 280,
+            "width": 56,
+            "height": 40
+          },
+          "cell.5": {
+            "x": 580,
+            "y": 280,
+            "width": 56,
+            "height": 40
+          }
+        },
+        "floor_index": 0
+      },
+      "property.inn": {
+        "label": "Optional inn room",
+        "region_id": "region.inn",
+        "provider_id": "a:merchant",
+        "price": 3,
+        "initial_resident": "",
+        "cells": {
+          "cell.0": {
+            "x": 180,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.1": {
+            "x": 280,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.2": {
+            "x": 480,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.3": {
+            "x": 580,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.4": {
+            "x": 480,
+            "y": 280,
+            "width": 56,
+            "height": 40
+          },
+          "cell.5": {
+            "x": 580,
+            "y": 280,
+            "width": 56,
+            "height": 40
+          }
+        },
+        "floor_index": 0
+      },
+      "property.home": {
+        "label": "Modest owned room",
+        "region_id": "region.home",
+        "provider_id": "a:merchant",
+        "price": 12,
+        "initial_resident": "",
+        "cells": {
+          "cell.0": {
+            "x": 180,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.1": {
+            "x": 280,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.2": {
+            "x": 480,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.3": {
+            "x": 580,
+            "y": 40,
+            "width": 56,
+            "height": 40
+          },
+          "cell.4": {
+            "x": 480,
+            "y": 280,
+            "width": 56,
+            "height": 40
+          },
+          "cell.5": {
+            "x": 580,
+            "y": 280,
+            "width": 56,
+            "height": 40
+          }
+        },
+        "floor_index": 0
+      }
+    },
+    "furnishings": {
+      "a:housing-chest": {
+        "label": "Travelling storage chest",
+        "owner_id": "a:player",
+        "property_id": "property.stable",
+        "cell_id": "cell.0",
+        "width": 40,
+        "height": 30,
+        "storage": true
+      },
+      "a:lamp": {
+        "label": "Small lamp",
+        "owner_id": "a:player",
+        "property_id": "property.stable",
+        "cell_id": "cell.1",
+        "width": 24,
+        "height": 24,
+        "storage": false
+      },
+      "a:cushion": {
+        "label": "Woven cushion",
+        "owner_id": "a:player",
+        "property_id": "property.stable",
+        "cell_id": "cell.2",
+        "width": 24,
+        "height": 24,
+        "storage": false
       }
     }
   }

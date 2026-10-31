@@ -9,6 +9,7 @@ For current system completeness and test/platform evidence, see [Implementation 
 ## [Unreleased]
 
 ### Added
+- Optional lodging/property access and touch-friendly constrained furniture placement, with valid-space previews, physical collision, and stable full-chest storage identity across packing, relocation and saves ([#14](https://github.com/MohamedXIV/behind-the-lanterns/issues/14), [#9](https://github.com/MohamedXIV/behind-the-lanterns/issues/9)).
 - Transactional world sessions, scheduled consequential events, stable entity IDs, and native save/recovery ([#11](https://github.com/MohamedXIV/behind-the-lanterns/pull/11)).
 - Collecting finite supplies, capacity-limited inventory and storage, merchant stock, and atomic buy/sell interactions ([#13](https://github.com/MohamedXIV/behind-the-lanterns/pull/13)).
 - Optional funded delivery work, active-play preparation with ingredient reservations, deadlines, and NPC schedule availability ([#15](https://github.com/MohamedXIV/behind-the-lanterns/pull/15)).
@@ -22,6 +23,7 @@ For current system completeness and test/platform evidence, see [Implementation 
 - Bidirectional public ship/caravan routes with scheduled carriers, explicit fares, atomic world-time journeys and regional arrivals, pursuit/detention refusal, and optional persistent concise travel logs ([#14](https://github.com/MohamedXIV/behind-the-lanterns/issues/14)).
 
 ### Changed
+- Added optional `housing` domain v1 and housing room/furniture definitions; older linked-world saves are preserved and rejected by content/domain compatibility checks. The housing playground uses a separate development save profile; no migration is claimed.
 - Added enforceable design-authority and progress-reporting guidance for development agents and a central implementation ledger ([#22](https://github.com/MohamedXIV/behind-the-lanterns/pull/22)).
 - Development fixture definitions, domain sets and narrative save schemas evolved as gameplay was added. **Older prototype saves can be rejected as incompatible**; they are preserved, not automatically migrated ([#18](https://github.com/MohamedXIV/behind-the-lanterns/pull/18)–[#27](https://github.com/MohamedXIV/behind-the-lanterns/pull/27)).
 - Added optional `travel` domain v1 and linked-world route/carrier/destination content; older linked-world development saves are preserved and rejected by existing domain/content compatibility checks, with no migration claimed ([#14](https://github.com/MohamedXIV/behind-the-lanterns/issues/14)).

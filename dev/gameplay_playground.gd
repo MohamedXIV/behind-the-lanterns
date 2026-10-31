@@ -5,7 +5,7 @@ extends Control
 signal session_changed(candidate: GameSession)
 
 const FIXTURE: String = "res://dev/fixtures/linked_world.json"
-const RECOVERY: String = "user://connected-gameplay-playground"
+const RECOVERY: String = "user://housing-gameplay-playground"
 const ACTION_HEIGHT: float = 48.0
 var _model: GameplayModel
 var _data: Dictionary
@@ -31,6 +31,7 @@ var _farming: FarmingPanel
 var _farming_tab: int = -1
 var _law: LawPanel
 var _law_tab: int = -1
+var _housing: HousingPanel
 var _travel: TravelPanel
 var _travel_tab: int = -1
 var _input: PlayerInput = PlayerInput.new()
@@ -248,6 +249,15 @@ func _ready() -> void:
 		_travel.name = "TravelPanel"
 		travel_scroll.add_child(_travel)
 		_travel.configure(_model, _actor, _prepare_action, _map.sync_position, _data.presentation.labels, _data.presentation.get("region_labels", {}))
+	if _model.housing != null:
+		var housing_scroll := ScrollContainer.new()
+		housing_scroll.name = "Housing"
+		tabs.add_child(housing_scroll)
+		_housing = HousingPanel.new()
+		_housing.name = "HousingPanel"
+		housing_scroll.add_child(_housing)
+		_housing.preview_changed.connect(_map.set_placement_preview)
+		_housing.configure(_model, _actor, _prepare_action, _map.sync_position)
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.
@@ -403,6 +413,7 @@ func _refresh(_revision: int) -> void:
 	if _farming != null: _farming.refresh()
 	if _law != null: _law.refresh()
 	if _travel != null: _travel.refresh()
+	if _housing != null: _housing.refresh()
 	_map.queue_redraw()
 
 func _goods_text(goods: Dictionary) -> String:
