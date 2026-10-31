@@ -6,7 +6,7 @@ signal session_changed(candidate: GameSession)
 
 const FIXTURE: String = "res://dev/fixtures/linked_world.json"
 const CUTAWAY_MANIFEST: String = "res://dev/art/cutaway_fixture/manifest.json"
-const RECOVERY: String = "user://housing-gameplay-playground"
+const RECOVERY: String = "user://combat-gameplay-playground"
 
 const ACTION_HEIGHT: float = 48.0
 var _model: GameplayModel
@@ -36,6 +36,8 @@ var _law_tab: int = -1
 var _housing: HousingPanel
 var _travel: TravelPanel
 var _travel_tab: int = -1
+var _combat: CombatPanel
+var _combat_tab: int = -1
 var _input: PlayerInput = PlayerInput.new()
 var _touch_controls: TouchControls
 var _margin: MarginContainer
@@ -264,6 +266,15 @@ func _ready() -> void:
 		_housing.preview_changed.connect(_map.set_placement_preview)
 		_housing.floor_selected.connect(func(floor_idx: int): _map.set_visible_floor(floor_idx); _housing.refresh())
 		_housing.configure(_model, _actor, _prepare_action, _map.sync_position, _map.cutaway_state)
+	if _model.combat != null:
+		_combat_tab = tabs.get_tab_count()
+		var combat_scroll := ScrollContainer.new()
+		combat_scroll.name = "Combat"
+		tabs.add_child(combat_scroll)
+		_combat = CombatPanel.new()
+		_combat.name = "CombatPanel"
+		combat_scroll.add_child(_combat)
+		_combat.configure(_model, _actor, _prepare_action, _map.visual_position, _map.sync_position)
 
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
@@ -306,6 +317,7 @@ func _on_selection_changed(_index: int) -> void:
 	_map.selected_target = _target()
 	if _farming != null and _model.farming.plots().has(_target()): _farming.open(_target())
 	if _law != null: _law.open(_target())
+	if _combat != null: _combat.open(_target())
 	_refresh(0)
 
 func _bind(candidate: GameSession) -> void:
@@ -318,6 +330,7 @@ func _on_replaced(candidate: GameSession) -> void:
 	_livelihood.reset_after_load()
 	if _fishing != null: _fishing.reset_after_load()
 	if _travel != null: _travel.reset_after_load()
+	if _combat != null: _combat.reset_after_load()
 	_bind(candidate)
 	_map.sync_position()
 	session_changed.emit(candidate)
@@ -334,6 +347,7 @@ func _commit_position() -> OperationResult:
 func _prepare_action() -> OperationResult:
 	_livelihood.flush_progress()
 	if _fishing != null: _fishing.flush_progress()
+	if _combat != null: _combat.flush_progress()
 	return _commit_position()
 
 func _show_message(text: String) -> void:
@@ -421,6 +435,7 @@ func _refresh(_revision: int) -> void:
 	if _law != null: _law.refresh()
 	if _travel != null: _travel.refresh()
 	if _housing != null: _housing.refresh()
+	if _combat != null: _combat.refresh()
 	_map.queue_redraw()
 
 func _goods_text(goods: Dictionary) -> String:
@@ -467,6 +482,12 @@ func _use_target(id: String) -> void:
 		_law.open(id)
 		_show_message("Speaking with " + str(_data.presentation.labels.get(id, id)) + ". Guards are never combat targets.")
 		return
+	if _model.combat != null and _model.combat.is_threat(id):
+		_select_target(id)
+		_tabs.current_tab = _combat_tab
+		_combat.open(id)
+		_show_message("Facing " + str(_data.presentation.labels.get(id, id)) + ". Engage to read telegraphs, or retreat safely.")
+		return
 	if _model.interactions.is_portal(id):
 		result = _model.enter(_intent("enter"), _actor, id)
 		if result.ok:
@@ -505,12 +526,13 @@ func _talk_nearby() -> void:
 	_conversation.open(id)
 
 func _on_combat_intent(action: String) -> void:
+	var nearby := _map.nearby_target()
 	if _model.law != null:
-		var nearby := _map.nearby_target()
 		if action == PlayerInput.PRIMARY_ACTION and _model.law.is_guard(nearby):
 			if _prepare_action().ok and _model.confront_guard(_intent("strike-guard"), _actor, nearby).ok:
 				_map.sync_position()
 				if _law != null: _law.refresh()
+				if _combat != null: _combat.refresh()
 				_show_message("Guards are never combat targets: scripted arrest and transfer to the watchhouse.")
 				return
 		elif action == PlayerInput.DODGE and _model.law.refuges().has(nearby) and _model.law.status_of(_model.session.snapshot(), _actor).status == "pursued":
@@ -518,6 +540,12 @@ func _on_combat_intent(action: String) -> void:
 				if _law != null: _law.refresh()
 				_show_message("Concealed in refuge until pursuit cooled down.")
 				return
+	if _combat != null:
+		var feedback := _combat.handle_combat_action(action, nearby)
+		if not feedback.is_empty():
+			_tabs.current_tab = _combat_tab
+			_show_message(feedback)
+			return
 	var label: String = {"btl_dodge": "Evade", "btl_block": "Guard", "btl_primary_action": "Action"}.get(action, action)
 	_show_message("%s ready — peaceful quarter (no active threat nearby)." % label)
 

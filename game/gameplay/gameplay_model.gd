@@ -17,18 +17,19 @@ var farming: FarmingRules
 var law: LawRules
 var travel: TravelRules
 var housing: HousingRules
+var combat: CombatRules
 
 static func create(data: Dictionary, world_id: String) -> GameplayModel:
-	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel", "housing"]): return null
+	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel", "housing", "combat"]): return null
 	# Match the codec's canonical numeric representation at content ingestion.
 	data = WorldData.normalize(data)
 	for field in ["world", "inventory", "economy", "interactions"]:
 		if not data[field] is Dictionary: return null
-	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming", "law", "travel", "housing"]:
+	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming", "law", "travel", "housing", "combat"]:
 		if data.has(field) and not data[field] is Dictionary: return null
 	if not WorldData.integer(data.get("start_minute", 0)): return null
 	var content := {"inventory": data.inventory, "economy": data.economy, "interactions": data.interactions}
-	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel", "housing"]:
+	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel", "housing", "combat"]:
 		if data.has(field): content[field] = data[field]
 	var definition := WorldDefinition.create(data.world, content)
 	if definition == null: return null
@@ -77,6 +78,10 @@ static func create(data: Dictionary, world_id: String) -> GameplayModel:
 		if model.housing == null: return null
 		model.interactions.housing = model.housing
 		domains.append(model.housing)
+	if data.has("combat"):
+		model.combat = CombatRules.create(data.combat, model.interactions, model.law)
+		if model.combat == null or not model.combat.validate_world(data.world): return null
+		domains.append(model.combat)
 	model.session = GameSession.create(definition, domains, world_id)
 	if model.session != null and not model.session.advance_to(data.get("start_minute", 0)).ok: return null
 	return model if model.session != null else null
@@ -87,7 +92,9 @@ func act(intent: String, actor_id: String, target_id: String, item_id: String, a
 
 func move_actor(intent: String, actor_id: String, x: Variant, y: Variant) -> OperationResult:
 	return session.transact(intent, func(tx: WorldTransaction) -> String:
-		return interactions.move_actor(tx, actor_id, x, y))
+		var error := interactions.move_actor(tx, actor_id, x, y)
+		if not error.is_empty(): return error
+		return combat.sync_spatial(tx, actor_id) if combat != null else "")
 
 func position_of(entity_id: String) -> Vector2:
 	return interactions.position_of(session.snapshot(), entity_id)
@@ -142,7 +149,9 @@ func enter(intent: String, actor_id: String, portal_id: String) -> OperationResu
 		if narrative != null:
 			var error := narrative.observe(tx, actor_id, portal_id)
 			if not error.is_empty(): return error
-		return interactions.enter(tx, actor_id, portal_id))
+		var enter_err := interactions.enter(tx, actor_id, portal_id)
+		if not enter_err.is_empty(): return enter_err
+		return combat.sync_spatial(tx, actor_id) if combat != null else "")
 
 func actor_region(actor_id: String) -> String:
 	return session.snapshot().entities[actor_id].region_id
@@ -189,11 +198,17 @@ func clear_plot(intent: String, actor: String, plot: String) -> OperationResult:
 
 func confront_guard(intent: String, actor: String, target: String) -> OperationResult:
 	if law == null: return OperationResult.failure("no_law")
-	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.confront_guard(tx, actor, target))
+	return session.transact(intent, func(tx: WorldTransaction) -> String:
+		var err := law.confront_guard(tx, actor, target)
+		if not err.is_empty(): return err
+		return combat.sync_spatial(tx, actor) if combat != null else "")
 
 func tamper_restricted(intent: String, actor: String, target: String) -> OperationResult:
 	if law == null: return OperationResult.failure("no_law")
-	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.tamper_restricted(tx, actor, target))
+	return session.transact(intent, func(tx: WorldTransaction) -> String:
+		var err := law.tamper_restricted(tx, actor, target)
+		if not err.is_empty(): return err
+		return combat.sync_spatial(tx, actor) if combat != null else "")
 
 func evade_pursuit(intent: String, actor: String, refuge: String) -> OperationResult:
 	if law == null: return OperationResult.failure("no_law")
@@ -205,17 +220,24 @@ func persuade_guard(intent: String, actor: String, guard_id: String) -> Operatio
 
 func surrender_to_guard(intent: String, actor: String, guard_id: String) -> OperationResult:
 	if law == null: return OperationResult.failure("no_law")
-	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.surrender_to_guard(tx, actor, guard_id))
+	return session.transact(intent, func(tx: WorldTransaction) -> String:
+		var err := law.surrender_to_guard(tx, actor, guard_id)
+		if not err.is_empty(): return err
+		return combat.sync_spatial(tx, actor) if combat != null else "")
 
 func pay_fine(intent: String, actor: String, guard_id: String) -> OperationResult:
 	if law == null: return OperationResult.failure("no_law")
-	return session.transact(intent, func(tx: WorldTransaction) -> String: return law.pay_fine(tx, actor, guard_id))
+	return session.transact(intent, func(tx: WorldTransaction) -> String:
+		var err := law.pay_fine(tx, actor, guard_id)
+		if not err.is_empty(): return err
+		return combat.sync_spatial(tx, actor) if combat != null else "")
 
 func serve_sentence(intent: String, actor: String) -> OperationResult:
 	if law == null: return OperationResult.failure("no_law")
 	var record := law.status_of(session.snapshot(), actor)
 	if record.status != "detained": return OperationResult.failure("not_detained")
-	return session.transact(intent, func(_tx: WorldTransaction) -> String: return "", record.until_minute)
+	return session.transact(intent, func(tx: WorldTransaction) -> String:
+		return combat.sync_spatial(tx, actor) if combat != null else "", record.until_minute)
 
 func take_route(intent: String, actor: String, route_id: String) -> OperationResult:
 	if travel == null: return OperationResult.failure("no_travel")
@@ -228,7 +250,9 @@ func take_route(intent: String, actor: String, route_id: String) -> OperationRes
 		if law != null:
 			var law_error := law.public_travel_error(tx.snapshot(), actor)
 			if not law_error.is_empty(): return law_error
-		return travel.board(tx, actor, route_id, TravelRules.journey_id(intent)), arrival)
+		var board_err := travel.board(tx, actor, route_id, TravelRules.journey_id(intent))
+		if not board_err.is_empty(): return board_err
+		return combat.sync_spatial(tx, actor) if combat != null else "", arrival)
 
 func acquire_housing(intent: String, actor: String, property_id: String) -> OperationResult:
 	if housing == null: return OperationResult.failure("no_housing")
@@ -241,3 +265,31 @@ func place_furnishing(intent: String, actor: String, id: String, property_id: St
 func pack_furnishing(intent: String, actor: String, id: String) -> OperationResult:
 	if housing == null: return OperationResult.failure("no_housing")
 	return session.transact(intent, func(tx: WorldTransaction) -> String: return housing.pack(tx, actor, id))
+
+func engage_combat(intent: String, actor: String, threat_id: String) -> OperationResult:
+	if combat == null: return OperationResult.failure("no_combat")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return combat.engage(tx, actor, threat_id))
+
+func progress_combat(intent: String, actor: String, milliseconds: Variant) -> OperationResult:
+	if combat == null: return OperationResult.failure("no_combat")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return combat.progress(tx, actor, milliseconds))
+
+func strike_combat(intent: String, actor: String, target_id: String = "") -> OperationResult:
+	if combat == null: return OperationResult.failure("no_combat")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return combat.strike(tx, actor, target_id))
+
+func dodge_combat(intent: String, actor: String) -> OperationResult:
+	if combat == null: return OperationResult.failure("no_combat")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return combat.dodge(tx, actor))
+
+func block_combat(intent: String, actor: String) -> OperationResult:
+	if combat == null: return OperationResult.failure("no_combat")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return combat.block(tx, actor))
+
+func retreat_combat(intent: String, actor: String) -> OperationResult:
+	if combat == null: return OperationResult.failure("no_combat")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return combat.retreat(tx, actor))
+
+func recover_combat(intent: String, actor: String) -> OperationResult:
+	if combat == null: return OperationResult.failure("no_combat")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return combat.recover(tx, actor))

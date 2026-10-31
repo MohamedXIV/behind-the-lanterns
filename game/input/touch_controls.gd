@@ -81,11 +81,29 @@ func _build() -> void:
 	var evade_btn := Button.new()
 	evade_btn.name = "TouchEvade"
 	evade_btn.text = "Evade"
-	evade_btn.custom_minimum_size = Vector2(76, PlayerInput.MIN_TOUCH_TARGET)
+	evade_btn.custom_minimum_size = Vector2(64, PlayerInput.MIN_TOUCH_TARGET)
 	evade_btn.pressed.connect(func():
 		if _input != null: _input.trigger_action(PlayerInput.DODGE)
 		combat_action_pressed.emit(PlayerInput.DODGE))
 	_action_cluster.add_child(evade_btn)
+
+	var guard_btn := Button.new()
+	guard_btn.name = "TouchGuard"
+	guard_btn.text = "Guard"
+	guard_btn.custom_minimum_size = Vector2(64, PlayerInput.MIN_TOUCH_TARGET)
+	guard_btn.pressed.connect(func():
+		if _input != null: _input.trigger_action(PlayerInput.BLOCK)
+		combat_action_pressed.emit(PlayerInput.BLOCK))
+	_action_cluster.add_child(guard_btn)
+
+	var strike_btn := Button.new()
+	strike_btn.name = "TouchStrike"
+	strike_btn.text = "Strike"
+	strike_btn.custom_minimum_size = Vector2(64, PlayerInput.MIN_TOUCH_TARGET)
+	strike_btn.pressed.connect(func():
+		if _input != null: _input.trigger_action(PlayerInput.PRIMARY_ACTION)
+		combat_action_pressed.emit(PlayerInput.PRIMARY_ACTION))
+	_action_cluster.add_child(strike_btn)
 
 	add_child(_dpad_cluster)
 	add_child(_spacer)

@@ -33,7 +33,8 @@
       "item.river_lotus",
       "actor.guard",
       "actor.detainee",
-      "actor.carrier"
+      "actor.carrier",
+      "actor.threat"
     ],
     "entities": {
       "a:player": {
@@ -183,6 +184,10 @@
       "a:cushion": {
         "definition_id": "object.storage",
         "region_id": "region.workshop"
+      },
+      "a:reed-stalker": {
+        "definition_id": "actor.threat",
+        "region_id": "region.river"
       }
     },
     "facts": {
@@ -516,6 +521,10 @@
       "a:cushion": {
         "x": 508,
         "y": 60
+      },
+      "a:reed-stalker": {
+        "x": 680,
+        "y": 340
       }
     },
     "geometry": {
@@ -675,7 +684,8 @@
       "a:home-exit": "Courtyard",
       "a:housing-chest": "Travelling storage chest",
       "a:lamp": "Small lamp",
-      "a:cushion": "Woven cushion"
+      "a:cushion": "Woven cushion",
+      "a:reed-stalker": "Reed stalker"
     },
     "region_labels": {
       "region.playground": "Courtyard",
@@ -1552,6 +1562,35 @@
         "width": 24,
         "height": 24,
         "storage": false
+      }
+    }
+  },
+  "combat": {
+    "actor_max_health": 4,
+    "base_strike_damage": 1,
+    "weak_spot_damage": 2,
+    "threats": {
+      "a:reed-stalker": {
+        "label": "Reed stalker",
+        "weak_spot_label": "unarmored flank",
+        "max_health": 4,
+        "engage_range": 120,
+        "disengage_range": 180,
+        "poised_ms": 600,
+        "light_windup_ms": 800,
+        "heavy_windup_ms": 1000,
+        "weak_spot_ms": 1000,
+        "light_damage": 1,
+        "heavy_damage": 2,
+        "pattern": [
+          "light",
+          "heavy",
+          "light"
+        ],
+        "retreat_point": {
+          "x": 460,
+          "y": 330
+        }
       }
     }
   }
