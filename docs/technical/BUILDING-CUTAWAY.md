@@ -61,3 +61,5 @@ Approved direction under evaluation:
 3. **Preserved Gameplay & Save Compatibility:**
    - `HousingRules`, `InteractionRules`, `InventoryRules`, and `CommerceRules` are untouched.
    - No save format, domain schema version, or `linked_world.json` content fingerprint changed; existing housing saves remain compatible.
+   - Implementation PR: [#30](https://github.com/MohamedXIV/behind-the-lanterns/pull/30); directly verified implementation commit: `5242e09`.
+
