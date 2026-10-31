@@ -26,6 +26,8 @@ This is a provisional implementation subset. No rotation, stacking, walls, physi
 
 Optional `housing` domain v1 is added. Outer save container format and existing domain versions are unchanged. Housing definitions, rooms/entities and cells change the linked-world content fingerprint/domain set. Old linked-world prototype saves are rejected safely by existing compatibility checks, with no migration claimed. The playground uses `user://housing-gameplay-playground`, preserving earlier development profile files. Furniture identity, occupancy and packed/placed state survive save/load and process restart; Inventory retains contained items.
 
+Implementation and review: [PR #29](https://github.com/MohamedXIV/behind-the-lanterns/pull/29). Directly tested implementation revision: `b10f6ca351b07375749b111bb2c2f062db54de08`; subsequent evidence-link edits change documentation only.
+
 ## Verification
 
 Run from the checkout with Godot Standard `4.7.2.stable.official.ed1daf0bf`:
