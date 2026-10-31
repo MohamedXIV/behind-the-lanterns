@@ -6,7 +6,7 @@ signal session_changed(candidate: GameSession)
 
 const FIXTURE: String = "res://dev/fixtures/linked_world.json"
 const CUTAWAY_MANIFEST: String = "res://dev/art/cutaway_fixture/manifest.json"
-const RECOVERY: String = "user://combat-gameplay-playground"
+const RECOVERY: String = "user://exploration-gameplay-playground"
 
 const ACTION_HEIGHT: float = 48.0
 var _model: GameplayModel
@@ -489,10 +489,18 @@ func _use_target(id: String) -> void:
 		_show_message("Facing " + str(_data.presentation.labels.get(id, id)) + ". Engage to read telegraphs, or retreat safely.")
 		return
 	if _model.interactions.is_portal(id):
+		var had_claim := false
+		var claim_id := _model.narrative.discovery_claim(id) if _model.narrative != null else ""
+		if not claim_id.is_empty():
+			had_claim = _model.session.snapshot().knowledge.get(claim_id, "") == "confirmed"
 		result = _model.enter(_intent("enter"), _actor, id)
 		if result.ok:
 			_map.sync_position()
-			_show_message("Entered " + _region_label())
+			var obs := _model.narrative.observation_text(id) if _model.narrative != null else ""
+			if not obs.is_empty() and not had_claim:
+				_show_message("Entered " + _region_label() + " · Discovered: " + obs)
+			else:
+				_show_message("Entered " + _region_label())
 		else: _show_message(result.code)
 		return
 	if _model.narrative != null:

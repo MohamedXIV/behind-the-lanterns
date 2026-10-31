@@ -173,3 +173,7 @@ static func cursor(record: Dictionary) -> String:
 func observation_text(target_id: String) -> String:
 	if not _config.discoveries.has(target_id): return ""
 	return _config.journal.get(_config.discoveries[target_id].claim_id, "")
+
+func discovery_claim(target_id: String) -> String:
+	if not _config.discoveries.has(target_id): return ""
+	return str(_config.discoveries[target_id].claim_id)

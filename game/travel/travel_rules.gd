@@ -13,8 +13,9 @@ static func create(config: Dictionary, world: Dictionary, interactions: Interact
 	if not WorldData.keys(config, ["routes"]) or not config.routes is Dictionary or config.routes.is_empty(): return null
 	for route_id in config.routes:
 		var route: Variant = config.routes[route_id]
-		if not WorldData.id(route_id) or not WorldData.keys(route, ["label", "mode", "carrier_id", "origin_region", "destination_region", "x", "y", "fare", "duration_minutes", "log"]): return null
+		if not WorldData.id(route_id) or not WorldData.keys(route, ["label", "mode", "carrier_id", "origin_region", "destination_region", "x", "y", "fare", "duration_minutes", "log"], ["hazard_refusal"]): return null
 		if not route.label is String or route.label.is_empty() or not route.log is String or route.log.is_empty(): return null
+		if route.has("hazard_refusal") and (not route.hazard_refusal is String or route.hazard_refusal.is_empty()): return null
 		if not route.mode in ["ship", "caravan"] or not WorldData.id(route.carrier_id): return null
 		if not route.origin_region in world.regions or not route.destination_region in world.regions or route.origin_region == route.destination_region: return null
 		if not route.carrier_id in interactions.target_ids() or not commerce.has_wallet(route.carrier_id): return null
@@ -42,6 +43,12 @@ func event_kinds() -> Array[String]:
 
 func route(route_id: String) -> Dictionary:
 	return _routes.get(route_id, {}).duplicate(true)
+
+func is_hazardous(route_id: String) -> bool:
+	return _routes.get(route_id, {}).has("hazard_refusal")
+
+func hazard_refusal_text(route_id: String) -> String:
+	return str(_routes.get(route_id, {}).get("hazard_refusal", ""))
 
 func is_carrier(entity_id: String) -> bool:
 	for definition in _routes.values():
@@ -80,6 +87,7 @@ func board(tx: WorldTransaction, actor_id: String, route_id: String, id: String)
 	var error := _interactions.reach_error(tx, actor_id, definition.carrier_id)
 	if not error.is_empty(): return error
 	if not _interactions.available(definition.carrier_id, tx.now()): return "person_unavailable"
+	if definition.has("hazard_refusal"): return "carrier_refuses_hazard"
 	if definition.duration_minutes > WorldData.MAX_COUNTER - tx.now(): return "travel_time_overflow"
 	var arrival: int = tx.now() + definition.duration_minutes
 	var event_id := arrival_event_id(id)
