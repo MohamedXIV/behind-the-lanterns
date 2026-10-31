@@ -9,7 +9,8 @@
       "region.watchhouse",
       "region.estuary",
       "region.inn",
-      "region.home"
+      "region.home",
+      "region.shoal"
     ],
     "definitions": [
       "actor.resident",
@@ -188,18 +189,47 @@
       "a:reed-stalker": {
         "definition_id": "actor.threat",
         "region_id": "region.river"
+      },
+      "a:shoal-causeway": {
+        "definition_id": "object.door",
+        "region_id": "region.estuary"
+      },
+      "a:shoal-return": {
+        "definition_id": "object.door",
+        "region_id": "region.shoal"
+      },
+      "a:sunken-arch": {
+        "definition_id": "object.supplies",
+        "region_id": "region.shoal"
+      },
+      "a:tidal-cache": {
+        "definition_id": "object.storage",
+        "region_id": "region.shoal"
+      },
+      "a:shoal-pool": {
+        "definition_id": "object.fishing_spot",
+        "region_id": "region.shoal"
+      },
+      "a:reef-warden": {
+        "definition_id": "actor.threat",
+        "region_id": "region.shoal"
       }
     },
     "facts": {
       "fact.passage_exists": true,
       "fact.basin_dry": true,
-      "fact.riverbank_exists": true
+      "fact.riverbank_exists": true,
+      "fact.causeway_exists": true,
+      "fact.arch_inscription_intact": true
     },
     "claims": [
       "claim.passage",
       "claim.water",
       "claim.dry_basin",
-      "claim.riverbank"
+      "claim.riverbank",
+      "claim.shoal_causeway",
+      "claim.shoal_beacon",
+      "claim.arch_inscription"
     ]
   },
   "inventory": {
@@ -305,6 +335,15 @@
         "owner_id": "a:player",
         "access": "owner",
         "items": {}
+      },
+      "a:tidal-cache": {
+        "slots": 6,
+        "owner_id": "",
+        "access": "public",
+        "items": {
+          "item.river_lotus": 2,
+          "item.vessel": 1
+        }
       }
     }
   },
@@ -525,6 +564,30 @@
       "a:reed-stalker": {
         "x": 680,
         "y": 340
+      },
+      "a:shoal-causeway": {
+        "x": 680,
+        "y": 200
+      },
+      "a:shoal-return": {
+        "x": 100,
+        "y": 220
+      },
+      "a:sunken-arch": {
+        "x": 640,
+        "y": 140
+      },
+      "a:tidal-cache": {
+        "x": 620,
+        "y": 290
+      },
+      "a:shoal-pool": {
+        "x": 220,
+        "y": 90
+      },
+      "a:reef-warden": {
+        "x": 450,
+        "y": 310
       }
     },
     "geometry": {
@@ -584,6 +647,17 @@
       "region.home": {
         "radius": 10,
         "obstacles": []
+      },
+      "region.shoal": {
+        "radius": 10,
+        "obstacles": [
+          {
+            "x": 320,
+            "y": 150,
+            "width": 80,
+            "height": 110
+          }
+        ]
       }
     },
     "portals": {
@@ -641,6 +715,16 @@
         "region_id": "region.playground",
         "x": 40,
         "y": 250
+      },
+      "a:shoal-causeway": {
+        "region_id": "region.shoal",
+        "x": 100,
+        "y": 200
+      },
+      "a:shoal-return": {
+        "region_id": "region.estuary",
+        "x": 640,
+        "y": 200
       }
     }
   },
@@ -685,7 +769,13 @@
       "a:housing-chest": "Travelling storage chest",
       "a:lamp": "Small lamp",
       "a:cushion": "Woven cushion",
-      "a:reed-stalker": "Reed stalker"
+      "a:reed-stalker": "Reed stalker",
+      "a:shoal-causeway": "Low-tide stone causeway",
+      "a:shoal-return": "Estuary quay causeway",
+      "a:sunken-arch": "Weathered lantern arch",
+      "a:tidal-cache": "Salt-crusted drift chest",
+      "a:shoal-pool": "Brackish tide pool",
+      "a:reef-warden": "Shoal crab"
     },
     "region_labels": {
       "region.playground": "Courtyard",
@@ -696,7 +786,8 @@
       "region.estuary": "Estuary Quay",
       "region.remote": "Red Dune Waystation",
       "region.inn": "Optional inn room",
-      "region.home": "Modest owned room"
+      "region.home": "Modest owned room",
+      "region.shoal": "Outer Shoal Ruins"
     },
     "default_item": "item.dates"
   },
@@ -1001,7 +1092,10 @@
       "claim.passage": "A side passage exists beyond the workshop.",
       "claim.water": "A boatman claims a singing spring offers water in the alcove.",
       "claim.dry_basin": "The alcove basin is dry; its carved channel holds only dust.",
-      "claim.riverbank": "The river has a quiet reed bank and a deeper fishing channel."
+      "claim.riverbank": "The river has a quiet reed bank and a deeper fishing channel.",
+      "claim.shoal_causeway": "A low-water stone causeway at the east end of Estuary Quay leads out to the outer shoal ruins.",
+      "claim.shoal_beacon": "Sailors rumor an undying flame still burns atop the outer shoal arch.",
+      "claim.arch_inscription": "The outer arch holds no magic flame — only a dry bronze brazier and a carved low-water tide mark."
     },
     "discoveries": {
       "a:side-passage": {
@@ -1015,6 +1109,14 @@
       "a:river-path": {
         "claim_id": "claim.riverbank",
         "fact_id": "fact.riverbank_exists"
+      },
+      "a:shoal-causeway": {
+        "claim_id": "claim.shoal_causeway",
+        "fact_id": "fact.causeway_exists"
+      },
+      "a:sunken-arch": {
+        "claim_id": "claim.arch_inscription",
+        "fact_id": "fact.arch_inscription_intact"
       }
     },
     "conversations": {
@@ -1174,6 +1276,37 @@
             "id": "claim.water"
           }
         }
+      },
+      "a:estuary-boatman": {
+        "compiled": "{\"inkVersion\":21,\"root\":[[{\"->\":\"greeting\"},[\"done\",{\"#n\":\"g-0\"}],null],\"done\",{\"greeting\":[[\"^The estuary boatman coils a salt-stiffened mooring line beside the packet hull. \\\"We tie up here at the quay; no packet hull will risk the jagged outer shoals.\\\"\",\"\\n\",\"ev\",\"str\",\"^Ask about the outer shoals beyond the quay.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},\"ev\",\"str\",\"^Report the dry bronze brazier and tide-mark on the outer arch.\",\"/str\",{\"VAR?\":\"found_arch\"},{\"VAR?\":\"reported_arch\"},\"!\",\"&&\",\"/ev\",{\"*\":\".^.c-1\",\"flg\":5},\"ev\",\"str\",\"^Leave him to his mooring lines.\",\"/str\",\"/ev\",{\"*\":\".^.c-2\",\"flg\":4},{\"c-0\":[\"\\n\",\"ev\",{\"VAR?\":\"found_causeway\"},\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"^\\\"You already walked the low-water causeway yourself? Watch your footing out there — shoal crabs guard the southern drift-ledge, though the northern stones stay clear.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],[{\"->\":\".^.b\"},{\"b\":[\"\\n\",\"^\\\"Sailors swear an undying beacon still burns on the sunken arch, and that a low-water stone causeway at the east end of this quay leads out to the reef on foot.\\\"\",\"\\n\",{\"->\":\".^.^.^.6\"},null]}],\"nop\",\"\\n\",\"#\",\"^command:causeway_rumor\",\"/#\",\"ev\",{\"VAR?\":\"reported_arch\"},\"!\",\"/ev\",[{\"->\":\".^.b\",\"c\":true},{\"b\":[\"\\n\",\"#\",\"^command:beacon_rumor\",\"/#\",{\"->\":\".^.^.^.16\"},null]}],\"nop\",\"\\n\",{\"->\":\"farewell\"},null],\"c-1\":[\"\\n\",\"^\\\"A dry bronze brazier and a carved low-water mark instead of a magic fire? Better a true tide-mark than a tavern tale. I will tell passengers what actually stands on that reef.\\\"\",\"\\n\",\"#\",\"^command:report_arch\",\"/#\",{\"->\":\"farewell\"},null],\"c-2\":[\"\\n\",\"end\",null]}],null],\"farewell\":[[\"ev\",\"str\",\"^Thank the boatman and step back.\",\"/str\",\"/ev\",{\"*\":\".^.c-0\",\"flg\":4},{\"c-0\":[\"\\n\",\"end\",null]}],null],\"global decl\":[\"ev\",false,{\"VAR=\":\"found_causeway\"},false,{\"VAR=\":\"found_arch\"},false,{\"VAR=\":\"reported_arch\"},\"/ev\",\"end\",null]}],\"listDefs\":{}}",
+        "queries": {
+          "found_causeway": {
+            "kind": "confirmed",
+            "id": "claim.shoal_causeway"
+          },
+          "found_arch": {
+            "kind": "confirmed",
+            "id": "claim.arch_inscription"
+          },
+          "reported_arch": {
+            "kind": "reported",
+            "id": "claim.arch_inscription"
+          }
+        },
+        "actions": {
+          "causeway_rumor": {
+            "kind": "hear",
+            "id": "claim.shoal_causeway"
+          },
+          "beacon_rumor": {
+            "kind": "hear",
+            "id": "claim.shoal_beacon"
+          },
+          "report_arch": {
+            "kind": "report",
+            "id": "claim.arch_inscription"
+          }
+        }
       }
     }
   },
@@ -1201,6 +1334,23 @@
         "bite_ms": 2500,
         "window_ms": 1500,
         "pool": [
+          {
+            "bait": "item.dates",
+            "fish": "item.catfish",
+            "weight": 1
+          }
+        ]
+      },
+      "a:shoal-pool": {
+        "label": "Brackish tide pool \u00b7 grain or dates attract coastal fish",
+        "bite_ms": 1800,
+        "window_ms": 1200,
+        "pool": [
+          {
+            "bait": "item.grain",
+            "fish": "item.silverfish",
+            "weight": 2
+          },
           {
             "bait": "item.dates",
             "fish": "item.catfish",
@@ -1391,6 +1541,19 @@
         "fare": 3,
         "duration_minutes": 300,
         "log": "The return caravan follows old stone markers across the dunes and reaches the courtyard by the familiar lamps."
+      },
+      "route.ship_sunken_arch": {
+        "label": "Outer shoal passage",
+        "mode": "ship",
+        "carrier_id": "a:estuary-boatman",
+        "origin_region": "region.estuary",
+        "destination_region": "region.shoal",
+        "x": 100,
+        "y": 200,
+        "fare": 5,
+        "duration_minutes": 120,
+        "log": "No public packet completes this passage across the jagged outer reef.",
+        "hazard_refusal": "The packet boatman refuses to steer a deep-hulled boat among the jagged outer shoals. Cross the low-water stone causeway at the east end of Estuary Quay on foot."
       }
     }
   },
@@ -1590,6 +1753,28 @@
         "retreat_point": {
           "x": 460,
           "y": 330
+        }
+      },
+      "a:reef-warden": {
+        "label": "Shoal crab",
+        "weak_spot_label": "exposed shell seam",
+        "max_health": 4,
+        "engage_range": 115,
+        "disengage_range": 175,
+        "poised_ms": 600,
+        "light_windup_ms": 750,
+        "heavy_windup_ms": 950,
+        "weak_spot_ms": 1000,
+        "light_damage": 1,
+        "heavy_damage": 2,
+        "pattern": [
+          "heavy",
+          "light",
+          "heavy"
+        ],
+        "retreat_point": {
+          "x": 200,
+          "y": 290
         }
       }
     }

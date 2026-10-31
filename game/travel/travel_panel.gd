@@ -96,7 +96,8 @@ func refresh() -> void:
 	var destination: String = _region_labels.get(definition.destination_region, definition.destination_region)
 	var carrier: String = _labels.get(definition.carrier_id, definition.carrier_id)
 	var available := _model.interactions.available(definition.carrier_id, _model.session.now())
-	_status.text = "%s · %s\n%s → %s\nCarrier: %s · %s\nFare: %d coins · Journey: %d world min" % [definition.label, definition.mode.capitalize(), origin, destination, carrier, "accepting passengers" if available else "unavailable now", definition.fare, definition.duration_minutes]
+	var hazard_note := "\nNotice: Hazardous destination — public carrier refuses direct landing" if definition.has("hazard_refusal") else ""
+	_status.text = "%s · %s\n%s → %s\nCarrier: %s · %s\nFare: %d coins · Journey: %d world min%s" % [definition.label, definition.mode.capitalize(), origin, destination, carrier, "accepting passengers" if available else "unavailable now", definition.fare, definition.duration_minutes, hazard_note]
 	_board.text = "Travel · %d coins" % definition.fare
 	_board.disabled = false
 
@@ -127,6 +128,8 @@ func _confirm_travel() -> void:
 		_rebuild_routes()
 		var destination: String = _region_labels.get(definition.destination_region, definition.destination_region)
 		_feedback.text = definition.log + "\nArrived at " + destination + "."
+	elif result.code == "carrier_refuses_hazard" and definition.has("hazard_refusal"):
+		_feedback.text = str(definition.hazard_refusal)
 	else:
 		_feedback.text = _message(result.code)
 	refresh()
@@ -138,5 +141,6 @@ func _message(code: String) -> String:
 		"person_unavailable": "The carrier is not accepting passengers now. Wait for their next duty period.",
 		"insufficient_funds": "You do not have enough coins for this fare.",
 		"carrier_refuses_pursuit": "Public carriers refuse passage while the watch is pursuing you.",
+		"carrier_refuses_hazard": "Public carriers refuse direct passage into hazardous or uncharted waters; approach from a safe landing on foot.",
 		"actor_detained": "You cannot book public travel while detained.",
 	}.get(code, code.replace("_", " "))

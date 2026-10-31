@@ -267,6 +267,14 @@ func _draw() -> void:
 			if planted.is_empty(): detail = "%s · %s" % [_model.farming.plots()[id].soil.capitalize(), "Use to plant" if _model.farming.can_access(_actor, id) else "Private plot"]
 			else: detail = "%s · %s" % [planted.label, "Ripe · Harvest" if planted.ripe else "Water (%d/%d)" % [planted.waterings_done, planted.waterings_needed] if planted.can_water else "Growing (%d/%d)" % [planted.waterings_done, planted.waterings_needed]]
 		if _model.interactions.is_portal(id): detail = "Door · Use nearby"
+		if _model.narrative != null:
+			var claim_id := _model.narrative.discovery_claim(id)
+			if not claim_id.is_empty():
+				var state_str: String = snapshot.knowledge.get(claim_id, "")
+				if _model.interactions.is_portal(id):
+					detail = "Door · Explored" if state_str == "confirmed" else ("Door · Rumored approach" if not state_str.is_empty() else "Door · Use nearby")
+				else:
+					detail = "Confirmed · Landmark" if state_str == "confirmed" else ("Rumored · Use to inspect" if not state_str.is_empty() else "Landmark · Use to inspect")
 		if _model.law != null and _model.law.is_guard(id): detail = (npc.activity + " · " if not npc.is_empty() else "") + "Watch · Use nearby"
 		if _model.combat != null and _model.combat.is_threat(id): detail = _threat_detail(id, snapshot)
 		var job := _model.crafting.active_job(snapshot, _actor)
