@@ -5,7 +5,9 @@ extends Control
 signal session_changed(candidate: GameSession)
 
 const FIXTURE: String = "res://dev/fixtures/linked_world.json"
+const CUTAWAY_MANIFEST: String = "res://dev/art/cutaway_fixture/manifest.json"
 const RECOVERY: String = "user://housing-gameplay-playground"
+
 const ACTION_HEIGHT: float = 48.0
 var _model: GameplayModel
 var _data: Dictionary
@@ -111,7 +113,10 @@ func _ready() -> void:
 	_map.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	map_column.add_child(_map)
 	_map.configure(_model, _actor, _data.presentation.labels, _data.presentation.walk_speed, _input)
+	var cutaway := BuildingCutaway.load_from_manifest(CUTAWAY_MANIFEST)
+	if cutaway != null: _map.set_building_cutaway(cutaway)
 	_map.target_selected.connect(_select_target)
+
 	_map.stopped.connect(_on_stopped)
 	_map.use_requested.connect(_use_target)
 	_map.talk_requested.connect(_talk_nearby)
@@ -257,7 +262,9 @@ func _ready() -> void:
 		_housing.name = "HousingPanel"
 		housing_scroll.add_child(_housing)
 		_housing.preview_changed.connect(_map.set_placement_preview)
-		_housing.configure(_model, _actor, _prepare_action, _map.sync_position)
+		_housing.floor_selected.connect(func(floor_idx: int): _map.set_visible_floor(floor_idx); _housing.refresh())
+		_housing.configure(_model, _actor, _prepare_action, _map.sync_position, _map.cutaway_state)
+
 	_model.session_replaced.connect(_on_replaced)
 	_bind(_model.session)
 	_select_target("a:supplies") # Disposable fixture selection, never a rule assumption.

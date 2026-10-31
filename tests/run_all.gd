@@ -43,7 +43,9 @@ func _run() -> void:
 	load("res://tests/test_law.gd").new().run(self)
 	load("res://tests/test_travel.gd").new().run(self)
 	load("res://tests/test_housing.gd").new().run(self)
+	load("res://tests/test_building_cutaway.gd").new().run(self)
 	_finish()
+
 
 func _finish() -> void:
 	print("FOUNDATION %s: %d assertions, %d failures" % ["PASS" if _failures == 0 else "FAIL", _checks, _failures])
