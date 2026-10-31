@@ -58,6 +58,7 @@ func _run() -> void:
 	_law_restart(args[0], args[1] + "-law")
 	_travel_restart(args[0], args[1] + "-travel")
 	_housing_restart(args[0], args[1] + "-housing")
+	_combat_restart(args[0], args[1] + "-combat")
 	print("RESTART %s %s" % [args[0], "FAIL" if _failed else "PASS"])
 	quit(1 if _failed else 0)
 
@@ -290,3 +291,23 @@ func _housing_restart(mode: String, directory: String) -> void:
 		DirAccess.remove_absolute(directory)
 	game.session.close()
 	print("HOUSING RESTART %s checked" % mode)
+
+func _combat_restart(mode: String, directory: String) -> void:
+	var fixture: RefCounted = load("res://tests/test_combat.gd").new()
+	var m: GameplayModel = fixture.model()
+	var store := RecoveryStore.new(directory)
+	if mode == "write":
+		expect(fixture.to_stalker(m, "restart") and m.engage_combat("engage", "a:player", "a:reed-stalker").ok, "engage reed stalker before restart")
+		expect(m.progress_combat("poised", "a:player", 600).ok and m.block_combat("block", "a:player").ok and m.progress_combat("parry", "a:player", 800).ok, "parry light lunge into vulnerable weak-spot window before restart")
+		expect(m.strike_combat("weak-1", "a:player").ok and m.progress_combat("to-heavy", "a:player", 600).ok and m.dodge_combat("dodge-heavy", "a:player").ok, "strike weak spot, enter heavy windup, and commit dodge before disk save")
+		expect(store.save(m.session).ok, "save mid-encounter heavy windup state")
+	else:
+		expect(m.adopt(store.load_candidate(m.session)), "fresh process loads mid-encounter combat state")
+		var enc := m.combat.encounter(m.session.snapshot(), "a:player")
+		expect(enc.status == "engaged" and enc.phase == "heavy_windup" and enc.defense == "dodge" and enc.threat_health == 2 and enc.actor_health == 4 and enc.elapsed_ms == 0, "mid-encounter telegraph, committed dodge, and health survive process restart without offline time drift")
+		expect(m.progress_combat("finish-heavy", "a:player", 1000).ok and m.combat.encounter(m.session.snapshot(), "a:player").phase == "vulnerable", "committed dodge resolves heavy windup into vulnerable window after restart")
+		expect(m.strike_combat("finish-weak", "a:player").ok and m.combat.encounter(m.session.snapshot(), "a:player").status == "victory", "finishing weak-spot strike completes victory after restart")
+		for name in RecoveryStore.SLOT_NAMES: DirAccess.remove_absolute(directory.path_join(name))
+		DirAccess.remove_absolute(directory)
+	m.session.close()
+	print("COMBAT RESTART %s checked" % mode)

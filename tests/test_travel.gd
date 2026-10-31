@@ -89,6 +89,7 @@ func _test_law_refusals(t) -> void:
 func _test_event_failure_rolls_back_journey(t) -> void:
 	var m := model("world.travel-budget")
 	var domains: Array = [m.inventory, m.commerce, m.interactions, m.crafting, m.work, m.narrative, m.fishing, m.farming, m.law, m.travel, m.housing]
+	if m.combat != null: domains.append(m.combat)
 	var limited := GameSession.create(m.session.definition(), domains, "world.travel-budget", 1)
 	t.check(limited != null and limited.advance_to(480).ok and m.adopt(limited), "one-event budget session composed for rollback proof")
 	t.check(m.move_actor("merchant", "a:player", 620, 160).ok and m.accept_job("job", "a:player", "work.grain").ok and m.move_actor("boatman", "a:player", 640, 80).ok, "deadline and boarding prepared for bounded event failure")

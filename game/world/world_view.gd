@@ -238,6 +238,8 @@ func _draw() -> void:
 			draw_circle(at, 22, Color("254d60"))
 			draw_arc(at, 18, 0, TAU, 32, Color("85d4dc"), 2)
 			draw_circle(at + Vector2(0, -5), 3, Color("f5d48d"))
+		elif _model.combat != null and _model.combat.is_threat(id):
+			_draw_threat(id, at, snapshot)
 		elif _model.farming != null and _model.farming.plots().has(id):
 			var plot_color := Color("6a533b") if _model.farming.can_access(_actor, id) else Color("5c4850")
 			draw_rect(Rect2(at - Vector2(20, 14), Vector2(40, 24)), plot_color)
@@ -266,6 +268,7 @@ func _draw() -> void:
 			else: detail = "%s · %s" % [planted.label, "Ripe · Harvest" if planted.ripe else "Water (%d/%d)" % [planted.waterings_done, planted.waterings_needed] if planted.can_water else "Growing (%d/%d)" % [planted.waterings_done, planted.waterings_needed]]
 		if _model.interactions.is_portal(id): detail = "Door · Use nearby"
 		if _model.law != null and _model.law.is_guard(id): detail = (npc.activity + " · " if not npc.is_empty() else "") + "Watch · Use nearby"
+		if _model.combat != null and _model.combat.is_threat(id): detail = _threat_detail(id, snapshot)
 		var job := _model.crafting.active_job(snapshot, _actor)
 		if not job.is_empty() and job.station_id == id: detail = "%s · %d%%" % [job.status, int(100 * job.elapsed / _model.crafting.recipes()[job.recipe_id].duration_seconds)]
 		draw_string(font, at + Vector2(-80, 42), detail, HORIZONTAL_ALIGNMENT_CENTER, 160, 14, Color("b4c7c3"))
@@ -291,8 +294,56 @@ func _draw_actor(font: Font) -> void:
 	var actor_at := world_to_local(_visual)
 	draw_ellipse_shadow(actor_at)
 	draw_arc(actor_at, _model.interactions.reach() * _scale_factor(), 0, TAU, 48, Color(0.55, 0.85, 0.85, 0.22), 1)
+	if _model.combat != null:
+		var enc := _model.combat.encounter(_model.session.snapshot(), _actor)
+		if enc.get("status", "") == "engaged":
+			if enc.get("defense", "") == "block":
+				draw_arc(actor_at, 16, 0, TAU, 32, Color("7dc4ff"), 3)
+			elif enc.get("defense", "") == "dodge":
+				draw_arc(actor_at, 16, 0, TAU, 32, Color("7bf2c9"), 3)
 	draw_circle(actor_at, 10, Color("8bd0d1"))
 	draw_string(font, actor_at + Vector2(-24, 30), "You", HORIZONTAL_ALIGNMENT_CENTER, 48, 16, Color("c4f4ef"))
+
+func _draw_threat(id: String, at: Vector2, snapshot: Dictionary) -> void:
+	var tdef: Dictionary = _model.combat.threats()[id]
+	var enc := _model.combat.encounter(snapshot, _actor)
+	var is_active: bool = enc.get("status", "") == "engaged" and enc.get("threat_id", "") == id
+	var body_color := Color("c9654a")
+	if enc.get("threat_id", "") == id and enc.get("status", "") == "victory":
+		body_color = Color("5e6d68")
+	if is_active or id == selected_target:
+		draw_arc(at, float(tdef.engage_range) * _scale_factor(), 0, TAU, 48, Color(0.92, 0.45, 0.32, 0.24), 1.5)
+		draw_arc(at, float(tdef.disengage_range) * _scale_factor(), 0, TAU, 48, Color(0.75, 0.82, 0.65, 0.16), 1.0)
+	if is_active:
+		match enc.get("phase", ""):
+			"light_windup":
+				draw_arc(at, 28, 0, TAU, 32, Color("f2b84b"), 3)
+			"heavy_windup":
+				draw_arc(at, 32, 0, TAU, 32, Color("eb4d3d"), 4)
+			"vulnerable":
+				draw_arc(at, 30, 0, TAU, 32, Color("5ce68a"), 3)
+				draw_circle(at + Vector2(12, -10), 6, Color("5ce68a"))
+	draw_rect(Rect2(at - Vector2(14, 18), Vector2(28, 18)), body_color)
+	draw_circle(at + Vector2(-10, -14), 7, body_color.lightened(0.18))
+
+func _threat_detail(id: String, snapshot: Dictionary) -> String:
+	var tdef: Dictionary = _model.combat.threats()[id]
+	var enc := _model.combat.encounter(snapshot, _actor)
+	if enc.get("threat_id", "") == id:
+		if enc.get("status", "") == "engaged":
+			var hp_text := "HP %d/%d" % [int(enc.threat_health), int(tdef.max_health)]
+			match enc.get("phase", ""):
+				"light_windup": return hp_text + " · LIGHT TELL (Guard/Evade)"
+				"heavy_windup": return hp_text + " · HEAVY TELL (Evade!)"
+				"vulnerable": return hp_text + " · WEAK SPOT OPEN (Strike!)"
+				_: return hp_text + " · Poised"
+		elif enc.get("status", "") == "victory":
+			return "Driven off · Use to re-engage"
+		elif enc.get("status", "") == "retreated":
+			return "Disengaged · Use to engage"
+		elif enc.get("status", "") == "winded":
+			return "Hostile · Catch breath first"
+	return "Hostile · HP %d/%d" % [int(tdef.max_health), int(tdef.max_health)]
 
 func _draw_cutaway_layer(layer_name: String, alpha: float) -> void:
 	if _cutaway == null or alpha <= 0.001: return
