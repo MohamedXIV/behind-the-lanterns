@@ -16,18 +16,19 @@ var fishing: FishingRules
 var farming: FarmingRules
 var law: LawRules
 var travel: TravelRules
+var housing: HousingRules
 
 static func create(data: Dictionary, world_id: String) -> GameplayModel:
-	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel"]): return null
+	if not WorldData.valid(data) or not WorldData.keys(data, ["world", "inventory", "economy", "interactions"], ["presentation", "npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel", "housing"]): return null
 	# Match the codec's canonical numeric representation at content ingestion.
 	data = WorldData.normalize(data)
 	for field in ["world", "inventory", "economy", "interactions"]:
 		if not data[field] is Dictionary: return null
-	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming", "law", "travel"]:
+	for field in ["npcs", "crafting", "work", "narrative", "fishing", "farming", "law", "travel", "housing"]:
 		if data.has(field) and not data[field] is Dictionary: return null
 	if not WorldData.integer(data.get("start_minute", 0)): return null
 	var content := {"inventory": data.inventory, "economy": data.economy, "interactions": data.interactions}
-	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel"]:
+	for field in ["npcs", "crafting", "work", "start_minute", "narrative", "fishing", "farming", "law", "travel", "housing"]:
 		if data.has(field): content[field] = data[field]
 	var definition := WorldDefinition.create(data.world, content)
 	if definition == null: return null
@@ -71,6 +72,11 @@ static func create(data: Dictionary, world_id: String) -> GameplayModel:
 		model.travel = TravelRules.create(data.travel, data.world, model.interactions, model.commerce)
 		if model.travel == null: return null
 		domains.append(model.travel)
+	if data.has("housing"):
+		model.housing = HousingRules.create(data.housing, data.world, model.interactions, model.commerce)
+		if model.housing == null: return null
+		model.interactions.housing = model.housing
+		domains.append(model.housing)
 	model.session = GameSession.create(definition, domains, world_id)
 	if model.session != null and not model.session.advance_to(data.get("start_minute", 0)).ok: return null
 	return model if model.session != null else null
@@ -223,3 +229,15 @@ func take_route(intent: String, actor: String, route_id: String) -> OperationRes
 			var law_error := law.public_travel_error(tx.snapshot(), actor)
 			if not law_error.is_empty(): return law_error
 		return travel.board(tx, actor, route_id, TravelRules.journey_id(intent)), arrival)
+
+func acquire_housing(intent: String, actor: String, property_id: String) -> OperationResult:
+	if housing == null: return OperationResult.failure("no_housing")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return housing.acquire(tx, actor, property_id))
+
+func place_furnishing(intent: String, actor: String, id: String, property_id: String, cell_id: String) -> OperationResult:
+	if housing == null: return OperationResult.failure("no_housing")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return housing.place(tx, actor, id, property_id, cell_id))
+
+func pack_furnishing(intent: String, actor: String, id: String) -> OperationResult:
+	if housing == null: return OperationResult.failure("no_housing")
+	return session.transact(intent, func(tx: WorldTransaction) -> String: return housing.pack(tx, actor, id))

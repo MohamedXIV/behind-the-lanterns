@@ -327,6 +327,8 @@ Fish can be cooked, sold, gifted, or used in an optional quest. Regional legalit
 
 ## 10. Housing, property, decorating and storage
 
+**Implementation subset (#14, 31 October 2026):** D-050 and [HOUSING-PLAY.md](technical/HOUSING-PLAY.md) document optional authored access grants and constrained placement. This does not approve tenancy expiry/eviction or final property economics.
+
 ### 10.1 Progression
 The stable sleeping space is a **starting condition**, not permanent ownership. Later: rent a room at an inn, and buy or gain access to a small house; it may or may not have an adjoining plot for cultivation. The player may visit, rent or own different places if the world and economy support it. Personal boat-home belongs to later travel/housing design.
 

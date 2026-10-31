@@ -5,6 +5,10 @@ extends SessionDomain
 const DOMAIN: String = "interactions"
 # Binary-exact subpixel coordinates survive JSON readback without drift.
 const POSITION_STEP: float = 1.0 / 256.0
+var _housing_ref: WeakRef
+var housing: HousingRules:
+	get: return _housing_ref.get_ref() as HousingRules if _housing_ref != null else null
+	set(value): _housing_ref = weakref(value) if value != null else null
 var geometry: WorldGeometry
 var _regions: Dictionary = {}
 var _portals: Dictionary = {}
@@ -71,6 +75,7 @@ func validate(state: Dictionary, snapshot: Dictionary) -> String:
 	return ""
 
 func position_of(snapshot: Dictionary, entity_id: String) -> Vector2:
+	if housing != null and entity_id in housing.furnishings(): return housing.position(snapshot, entity_id)
 	if _npcs != null:
 		var projected := _npcs.projection(entity_id, snapshot.minute)
 		if not projected.is_empty(): return Vector2(projected.x, projected.y)
@@ -100,7 +105,7 @@ func reach_error(tx: WorldTransaction, actor_id: String, target_id: String) -> S
 	if tx.entity(actor_id).region_id != tx.entity(target_id).region_id: return "different_region"
 	var snapshot := tx.snapshot()
 	if position_of(snapshot, actor_id).distance_to(position_of(snapshot, target_id)) > reach(): return "out_of_reach"
-	if not geometry_for(tx.entity(actor_id).region_id).clear_segment(position_of(snapshot, actor_id), position_of(snapshot, target_id)): return "interaction_obstructed"
+	if not reach_geometry(snapshot, tx.entity(actor_id).region_id, target_id).clear_segment(position_of(snapshot, actor_id), position_of(snapshot, target_id)): return "interaction_obstructed"
 	return ""
 
 func move_actor(tx: WorldTransaction, actor_id: String, x: Variant, y: Variant) -> String:
@@ -108,7 +113,7 @@ func move_actor(tx: WorldTransaction, actor_id: String, x: Variant, y: Variant) 
 	if not _valid_point({"x": x, "y": y}): return "invalid_position"
 	x = snappedf(float(x), POSITION_STEP)
 	y = snappedf(float(y), POSITION_STEP)
-	var local := geometry_for(tx.entity(actor_id).region_id)
+	var local := movement_geometry(tx.snapshot(), tx.entity(actor_id).region_id)
 	if not local.walkable(Vector2(x, y)): return "position_blocked"
 	if local.route(position_of(tx.snapshot(), actor_id), Vector2(x, y)).is_empty() and not position_of(tx.snapshot(), actor_id).is_equal_approx(Vector2(x, y)): return "position_unreachable"
 	var state := tx.read_domain(DOMAIN)
@@ -116,6 +121,7 @@ func move_actor(tx: WorldTransaction, actor_id: String, x: Variant, y: Variant) 
 	return "" if tx.write_domain(DOMAIN, state) else "position_write_failed"
 
 func interact(tx: WorldTransaction, actor_id: String, target_id: String, item_id: String, amount: Variant, verb: String, unit_quote: Variant) -> String:
+	if housing != null and not housing.usable(tx.snapshot(), actor_id, target_id): return "housing_access_denied"
 	var reach_result := reach_error(tx, actor_id, target_id)
 	if not reach_result.is_empty(): return reach_result
 	match verb:
@@ -156,6 +162,9 @@ func enter(tx: WorldTransaction, actor_id: String, portal_id: String) -> String:
 	var error := reach_error(tx, actor_id, portal_id)
 	if not error.is_empty(): return error
 	var destination: Dictionary = _portals[portal_id]
+	if housing != null:
+		error = housing.region_error(tx.snapshot(), actor_id, destination.region_id)
+		if not error.is_empty(): return error
 	error = tx.move_entity(actor_id, destination.region_id)
 	if not error.is_empty(): return error
 	var state := tx.read_domain(DOMAIN)
@@ -173,3 +182,10 @@ func relocate_actor(tx: WorldTransaction, actor_id: String, region_id: String, x
 	var state := tx.read_domain(DOMAIN)
 	state.positions[actor_id] = WorldData.normalize({"x": x, "y": y})
 	return "" if tx.write_domain(DOMAIN, state) else "position_write_failed"
+
+func movement_geometry(snapshot: Dictionary, region_id: String) -> WorldGeometry:
+	return housing.geometry(snapshot, region_id) if housing != null else geometry_for(region_id)
+
+func reach_geometry(snapshot: Dictionary, region_id: String, target_id: String) -> WorldGeometry:
+	# The object being used is not an occluder of its own interaction point.
+	return housing.geometry(snapshot, region_id, target_id) if housing != null else geometry_for(region_id)
